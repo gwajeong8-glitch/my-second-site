@@ -3,7 +3,10 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Noblesse Time (완성형)</title>
+<title>Noblesse Time (업그레이드 블링블링 버전)</title>
+
+<!-- ✨ 고급 느낌을 위한 프리미엄 폰트 -->
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
 
 <style>
   :root{
@@ -28,8 +31,9 @@
   html,body{
     height:100%;
     margin:0;
-    background: #000;
-    font-family: "Nanum Myeongjo", "KoPub Batang", serif;
+    background:#000;
+    font-family: "Cormorant Garamond","Nanum Myeongjo", serif;
+    letter-spacing: 0.5px;
   }
 
   .canvas {
@@ -47,82 +51,112 @@
     z-index:0;
     pointer-events:none;
   }
-  .bg img { width:100%; height:100%; object-fit:cover; display:block; }
+  .bg img {
+    width:100%; height:100%;
+    object-fit:cover;
+    display:block;
+    filter: drop-shadow(0 0 15px rgba(255,215,130,0.2));
+  }
 
-  /* ======================= 가독성 개선 적용 ========================== */
-.canvas select {
-    position:absolute;
-    z-index:5;
-    width:var(--select-width);
-    height:var(--select-height);
-    font-size:28px;
+  /* ======================================================
+      ✨ 시도/시군구 Select 박스 — 블링블링 골드 업그레이드
+     ====================================================== */
+  .canvas select {
+      position:absolute;
+      z-index:5;
+      width:var(--select-width);
+      height:var(--select-height);
+      font-size:26px;
 
-    /* 기존 스타일 유지 */
-    color: var(--select-text);
-    background: rgba(0,0,0,0.35);
-    border: 2px solid rgba(200,167,107,0.95);
-    border-radius:8px;
-    outline:none;
-    appearance:none;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.35) inset;
-    font-weight:600;
+      color: var(--select-text);
+      background: rgba(0,0,0,0.45);
+      border: 2px solid rgba(255,230,160,0.9);
+      border-radius: 10px;
+      outline: none;
+      appearance: none;
+      font-weight:600;
 
-    text-align: center;
-    padding: 0;
+      text-align:center;
+      padding:0;
 
-    /* ✨ 추가된 효과 ✨ */
-    transition: 0.25s ease;
-    box-shadow:
-        0 0 10px rgba(255, 230, 180, 0.4),
-        inset 0 0 10px rgba(255, 230, 180, 0.25);
-}
+      /* 빛나는 골드 효과 */
+      transition: 0.25s ease;
+      box-shadow:
+          0 0 12px rgba(255, 230, 180, 0.40),
+          inset 0 0 12px rgba(255, 230, 180, 0.25),
+          0 0 30px rgba(255,210,140,0.2);
+      backdrop-filter: blur(2px);
+  }
 
-/* hover 시 빛나는 효과 */
-.canvas select:hover {
-    border-color: rgba(255, 220, 160, 1);
-    box-shadow:
-        0 0 15px rgba(255, 225, 170, 0.85),
-        inset 0 0 12px rgba(255, 225, 170, 0.35);
-}
+  /* Hover 효과 (손 올리면 밝게) */
+  .canvas select:hover {
+      border-color: rgba(255, 235, 180, 1);
+      box-shadow:
+          0 0 20px rgba(255, 240, 200, 0.9),
+          inset 0 0 14px rgba(255, 225, 170, 0.35);
+      transform: scale(1.03);
+  }
 
-/* 클릭(포커스) 시 더 강하게 빛남 */
-.canvas select:focus {
-    border-color: rgb(255, 240, 190);
-    box-shadow:
-        0 0 18px rgba(255, 240, 200, 1),
-        inset 0 0 14px rgba(255, 240, 200, 0.45);
-}
+  /* Focus(클릭) 효과 */
+  .canvas select:focus {
+      border-color: rgb(255, 245, 210);
+      box-shadow:
+          0 0 26px rgba(255, 245, 200, 1),
+          inset 0 0 18px rgba(255, 240, 200, 0.45);
+      transform: scale(1.05);
+  }
 
-/* 펼쳐진 옵션 목록 */
-.canvas select option {
-    background: #ffffff !important;
-    color: #000000 !important;
-}
+  /* 옵션 목록 */
+  .canvas select option {
+      background:#ffffff !important;
+      color:#000000 !important;
+  }
 
   #sido { left: var(--select-left-1); top: var(--select-top); }
   #sigungu { left: var(--select-left-2); top: var(--select-top); }
 
-  #timeDisplay{
-    position:absolute;
-    left: var(--time-left);
-    top: var(--time-top);
-    z-index:6;
-    color: var(--time-color);
-    font-size: var(--time-font-size);
-    font-weight:700;
-    text-shadow: 0 3px 12px rgba(0,0,0,0.6);
-    white-space: nowrap;
+  /* ======================================================
+      ✨ 날짜·시간 표시 — 고급 금빛 발광 효과
+     ====================================================== */
+  #timeDisplay {
+      position:absolute;
+      left: var(--time-left);
+      top: var(--time-top);
+      z-index:6;
+      color: var(--time-color);
+      font-size: var(--time-font-size);
+      font-weight:700;
+      white-space:nowrap;
+
+      /* 금빛 글로우 */
+      text-shadow:
+          0 0 12px rgba(255,220,150,0.85),
+          0 0 22px rgba(255,180,100,0.6),
+          0 2px 12px rgba(0,0,0,0.6);
+      
+      /* 은은한 부유 애니메이션 */
+      animation: floatGlow 3s ease-in-out infinite;
   }
 
+  @keyframes floatGlow {
+      0% { transform: translateY(0); opacity:1; }
+      50% { transform: translateY(-3px); opacity:0.92; }
+      100% { transform: translateY(0); opacity:1; }
+  }
+
+  /* ======================================================
+      모바일 대응 스케일링
+     ====================================================== */
   @media (max-width:1100px){
-    .canvas {
-      transform-origin: top center;
-      transform: scale(calc((100vw - 40px) / 1024));
-      margin-top:20px;
-    }
+      .canvas {
+          transform-origin: top center;
+          transform: scale(calc((100vw - 40px) / 1024));
+          margin-top:20px;
+      }
   }
 </style>
 </head>
+
 <body>
 
 <div class="canvas" id="canvas">
@@ -139,7 +173,7 @@
 <script>
 const regionData = {
   "서울특별시": ["종로구","중구","용산구","성동구","광진구","동대문구","중랑구","성북구","강북구","도봉구","노원구","은평구","서대문구","마포구","양천구","강서구","구로구","금천구","영등포구","동작구","관악구","서초구","강남구","송파구","강동구"],
-  "부산광역시": ["중구","서구","동구","영도구","부산진구","동래구","남구","북구","해운대구","사하구","금정구","강서구","연제구","수영구","사상구","기장군"],
+  "부산광역시": ["중구","서구","공동구","영도구","부산진구","동래구","남구","북구","해운대구","사하구","금정구","강서구","연제구","수영구","사상구","기장군"],
   "대구광역시": ["중구","동구","서구","남구","북구","수성구","달서구","달성군"],
   "인천광역시": ["중구","동구","미추홀구","연수구","남동구","부평구","계양구","서구","강화군","옹진군"],
   "광주광역시": ["동구","서구","남구","북구","광산구"],
@@ -197,7 +231,6 @@ function fillSigungu(sidoName){
 }
 
 sido.addEventListener('change', () => fillSigungu(sido.value));
-
 fillSidos();
 
 /* 기본값 — 경기도 / 가평군 */
@@ -207,7 +240,8 @@ fillSidos();
   if(regionData[ds]){
     sido.value = ds;
     fillSigungu(ds);
-    if(regionData[ds].includes(dg)) sigungu.value = dg;
+    if(regionData[ds].includes(dg))
+      sigungu.value = dg;
   }
 })();
 
