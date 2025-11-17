@@ -4,102 +4,118 @@
   <meta charset="utf-8" />
   <title>Noblesse - 메인 메뉴</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <style>
-    :root{
-      --bg:#0a0a0a;
-      --gold:#caa36a;
-      --btn-h:72px;
-      --btn-w:320px;
-    }
-    html,body{
-      margin:0;
-      height:100%;
-      background:var(--bg);
-      color:#fff;
-      font-family:"Inter","Noto Sans KR",sans-serif;
-    }
-    h1{
-      text-align:center;
-      padding:32px 0;
-      font-size:38px;
-      color:var(--gold);
-      letter-spacing:.5px;
+    /*************************************************
+      ▣ index.html 전용 스타일 (다른 페이지와 충돌 없음)
+    **************************************************/
+    .index-root {
+      --bg: #0a0a0a;
+      --gold: #caa36a;
+      --btn-h: 72px;
+      --btn-w: 320px;
     }
 
-    .menu-container{
-      width:1000px;
-      max-width:94%;
-      margin:0 auto;
-      display:flex;
-      flex-wrap:wrap;
-      justify-content:center;
-      gap:22px;
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: var(--bg, #0a0a0a);
+      color: #fff;
+      font-family: "Inter", "Noto Sans KR", sans-serif;
     }
 
-    .menu-btn{
-      width:var(--btn-w);
-      height:var(--btn-h);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background:linear-gradient(180deg,#00000070,#000000cc);
-      border:2px solid rgba(202,163,106,0.8);
-      border-radius:12px;
-      text-decoration:none;
-      color:#fff;
-      font-size:20px;
-      font-weight:700;
-      transition:.15s;
-      cursor:pointer;
-      box-shadow:0 8px 24px rgba(0,0,0,0.6),
-                 0 0 14px rgba(202,163,106,0.1) inset;
-    }
-    .menu-btn:hover{
-      transform:translateY(-4px);
-      border-color:#ffd58a;
-      box-shadow:0 20px 36px rgba(0,0,0,0.7),
-                 0 0 26px rgba(202,163,106,0.18) inset;
+    h1 {
+      text-align: center;
+      padding: 32px 0;
+      font-size: 38px;
+      color: var(--gold, #caa36a);
+      letter-spacing: .5px;
     }
 
-    /* 빈 메뉴는 클릭 disabled 느낌 */
-    .menu-empty{
-      opacity:0.4;
-      cursor:default;
-      pointer-events:none;
+    /*********** 메뉴 영역 ***********/
+    .index-menu-container {
+      width: 1000px;
+      max-width: 94%;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 22px;
     }
 
+    .index-btn {
+      width: var(--btn-w, 320px);
+      height: var(--btn-h, 72px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      background: linear-gradient(180deg, #00000070, #000000cc);
+      border: 2px solid rgba(202,163,106,0.8);
+      border-radius: 12px;
+
+      text-decoration: none;
+      color: #fff;
+      font-size: 20px;
+      font-weight: 700;
+
+      transition: .15s;
+      cursor: pointer;
+
+      box-shadow:
+        0 8px 24px rgba(0,0,0,0.6),
+        0 0 14px rgba(202,163,106,0.1) inset;
+    }
+
+    .index-btn:hover {
+      transform: translateY(-4px);
+      border-color: #ffd58a;
+      box-shadow:
+        0 20px 36px rgba(0,0,0,0.7),
+        0 0 26px rgba(202,163,106,0.18) inset;
+    }
+
+    /*********** 비활성 메뉴 ***********/
+    .index-btn-disabled {
+      opacity: 0.4;
+      cursor: default;
+      pointer-events: none;
+    }
+
+    /*********** 모바일 반응형 ***********/
     @media(max-width:500px){
-      .menu-btn{
-        width:100%;
-        font-size:18px;
-        height:64px;
+      .index-btn {
+        width: 100%;
+        height: 64px;
+        font-size: 18px;
       }
     }
   </style>
 </head>
-<body>
 
-<h1>Noblesse — 메인 메뉴</h1>
+<body class="index-root">
 
-<div class="menu-container">
+  <h1>Noblesse — 메인 메뉴</h1>
 
-  <!-- 1번 메뉴 -->
-  <a class="menu-btn" href="vip.html?menu=1">VIP 1~3</a>
+  <div class="index-menu-container">
 
-  <!-- 2번 메뉴 -->
-  <a class="menu-btn" href="data.html">데이터</a>
+    <!-- 활성 메뉴 1 -->
+    <a class="index-btn" href="vip.html?menu=1">VIP 1~3</a>
 
-  <!-- 3~10번은 빈 메뉴 -->
-  <div class="menu-btn menu-empty">메뉴 3</div>
-  <div class="menu-btn menu-empty">메뉴 4</div>
-  <div class="menu-btn menu-empty">메뉴 5</div>
-  <div class="menu-btn menu-empty">메뉴 6</div>
-  <div class="menu-btn menu-empty">메뉴 7</div>
-  <div class="menu-btn menu-empty">메뉴 8</div>
-  <div class="menu-btn menu-empty">메뉴 9</div>
-  <div class="menu-btn menu-empty">메뉴 10</div>
+    <!-- 활성 메뉴 2 -->
+    <a class="index-btn" href="data.html">데이터</a>
 
-</div>
+    <!-- 비활성 메뉴 (3~10) -->
+    <div class="index-btn index-btn-disabled">메뉴 3</div>
+    <div class="index-btn index-btn-disabled">메뉴 4</div>
+    <div class="index-btn index-btn-disabled">메뉴 5</div>
+    <div class="index-btn index-btn-disabled">메뉴 6</div>
+    <div class="index-btn index-btn-disabled">메뉴 7</div>
+    <div class="index-btn index-btn-disabled">메뉴 8</div>
+    <div class="index-btn index-btn-disabled">메뉴 9</div>
+    <div class="index-btn index-btn-disabled">메뉴 10</div>
+
+  </div>
 
 </body>
 </html>
