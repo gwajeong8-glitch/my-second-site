@@ -2,131 +2,136 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>Noblesse – 실시간 데이터</title>
+<title>실시간 데이터 현황</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-  body {
-    margin: 0;
-    background: #0b0b0b;
-    font-family: "Inter","Noto Sans KR",sans-serif;
-    color: #fff;
-    display: flex;
-    height: 100vh;
+  body{
+    margin:0;
+    background:#000;
+    color:white;
+    font-family:"Noto Sans KR", sans-serif;
+    display:flex;
   }
 
   /* 왼쪽 메뉴 */
-  .sidebar {
-    width: 220px;
-    background: #111;
-    border-right: 2px solid #caa36a;
-    padding: 20px 10px;
+  .left-menu{
+    width:180px;
+    padding:20px;
+    font-size:18px;
+    line-height:38px;
+  }
+  .left-menu div{
+    cursor:pointer;
+    transition:0.2s;
+  }
+  .left-menu div:hover{
+    color:#ffd27f;
+  }
+  .active{
+    color:#ffe9ad;
+    font-weight:700;
+    text-shadow:0 0 10px #ffcb62;
   }
 
-  .sidebar h2 {
-    color: #caa36a;
-    font-size: 20px;
-    text-align: center;
-    margin-bottom: 14px;
+  /* 오른쪽 컨텐츠 */
+  .content{
+    flex:1;
+    padding:20px 40px;
+    text-align:center;
   }
 
-  .menu-item {
-    padding: 10px;
-    margin-bottom: 6px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: .2s;
+  h1{
+    font-size:40px;
+    margin-bottom:10px;
   }
-  .menu-item:hover {
-    background: #333;
-  }
-  .menu-item.active {
-    background: #caa36a;
-    color: #111;
-    font-weight: 700;
+  .sub{
+    font-size:18px;
+    color:#e0e0e0;
+    margin-bottom:20px;
   }
 
-  /* 오른쪽 영역 */
-  .content {
-    flex: 1;
-    padding: 24px 32px;
+  /* 표 스타일 */
+  table{
+    width:100%;
+    max-width:1100px;
+    margin:auto;
+    border-collapse:collapse;
+    font-size:20px;
+    font-weight:600;
+    text-align:center;
+    color:#000;
   }
 
-  /* 제목 (금색 아님!) */
-  h1 {
-    color: #ffffff;
-    margin: 0 0 10px 0;
-    font-size: 28px;
+  thead tr{
+    background:#d7f1ff;  /* 진한 하늘색 */
+    height:60px;
+  }
+  tbody tr{
+    background:#d8f4d5; /* 진한 연초록 */
+    height:60px;
+  }
+  tbody tr:nth-child(even){
+    background:#c8edc3; /* 조금 더 짙은 초록 */
   }
 
-  /* 안내문만 금색 */
-  .sub {
-    color: #caa36a;
-    margin-bottom: 22px;
-    line-height: 1.6;
+  td,th{
+    border:1px solid #333;
+    padding:10px;
   }
 
-  /* 표 */
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    text-align: center;
+  /* 셀 수정 input */
+  td input{
+    width:95%;
+    height:38px;
+    font-size:18px;
+    font-weight:600;
+    border:none;
+    outline:none;
+    background:#fff;
   }
 
-  thead tr {
-    background: #4da3ff; /* 진한 하늘색 */
-    color: #000;
-    font-weight: 900;
-  }
-
-  tbody tr {
-    background: #1e7e34; /* 진한 초록색 */
-  }
-
-  th, td {
-    padding: 12px;
-    border: 1px solid #000;
-    font-size: 17px;
-  }
-
-  td[contenteditable="true"] {
-    background: rgba(255,255,255,0.15);
-    outline: none;
-  }
 </style>
 </head>
 <body>
 
 <!-- 왼쪽 메뉴 -->
-<div class="sidebar">
-  <h2>📌 메뉴</h2>
-  <div class="menu-item">메인 화면</div>
-  <div class="menu-item">유저 관리</div>
-  <div class="menu-item">로그 모니터</div>
-  <div class="menu-item active">실시간 데이터</div>
-  <div class="menu-item">거래 현황</div>
-  <div class="menu-item">DB 조회</div>
-  <div class="menu-item">보안 설정</div>
-  <div class="menu-item">환경 설정</div>
-  <div class="menu-item">담당 실장</div>
+<div class="left-menu">
+  <div>메인 화면</div>
+  <div>[매칭/고객 상태]</div>
+  <div>주문 상태</div>
+  <div>인증 상담</div>
+  <div>[상담/문의]</div>
+  <div>전국 만남</div>
+  <div>[관리/리더]</div>
+
+  <div class="active">실시간 데이터</div> <!-- 활성화 표시 -->
+
+  <div>[데이터 분석]</div>
+  <div>포인트 조회</div>
+  <div>유형 선택</div>
+  <div>회원 관리</div>
+  <div>회원 승인</div>
+  <div>회원 등록</div>
+  <div>담당 실장</div>
 </div>
 
-<!-- 오른쪽 메인 -->
+<!-- 오른쪽 내용 -->
 <div class="content">
-
   <h1>실시간 데이터 현황</h1>
-
   <div class="sub">
     아래 표의 데이터 값(포인트 금액·환불 금액·상태·서비스 등)은<br>
-    클릭 후 직접 수정할 수 있으며 수정 즉시 자동 저장됩니다.
+    HTML 안에서 클릭 후 직접 수정 가능합니다. 수정 즉시 자동 저장됩니다.
   </div>
 
-  <table>
+  <table id="dataTable">
     <thead>
       <tr>
         <th>번호</th>
+        <th>선택 유형</th>
         <th>포인트 금액</th>
         <th>환불 금액</th>
+        <th>정확도</th>
         <th>데이터 상태</th>
         <th>서비스</th>
       </tr>
@@ -134,51 +139,117 @@
 
     <tbody>
       <tr>
-        <td contenteditable="true" data-key="r1c1">1</td>
-        <td contenteditable="true" data-key="r1c2">100,000</td>
-        <td contenteditable="true" data-key="r1c3">90,000</td>
-        <td contenteditable="true" data-key="r1c4">정상</td>
-        <td contenteditable="true" data-key="r1c5">A서비스</td>
+        <td>1</td>
+        <td>선택 가능</td>
+        <td>120,000</td>
+        <td>250,500</td>
+        <td>100%</td>
+        <td>정상</td>
+        <td style="color:red;">매진</td>
       </tr>
 
       <tr>
-        <td contenteditable="true" data-key="r2c1">2</td>
-        <td contenteditable="true" data-key="r2c2">200,000</td>
-        <td contenteditable="true" data-key="r2c3">180,000</td>
-        <td contenteditable="true" data-key="r2c4">보류</td>
-        <td contenteditable="true" data-key="r2c5">B서비스</td>
+        <td>2</td>
+        <td>선택 가능</td>
+        <td>230,000</td>
+        <td>276,000</td>
+        <td>100%</td>
+        <td>정상</td>
+        <td style="color:red;">매진</td>
       </tr>
 
       <tr>
-        <td contenteditable="true" data-key="r3c1">3</td>
-        <td contenteditable="true" data-key="r3c2">300,000</td>
-        <td contenteditable="true" data-key="r3c3">270,000</td>
-        <td contenteditable="true" data-key="r3c4">정상</td>
-        <td contenteditable="true" data-key="r3c5">C서비스</td>
+        <td>3</td>
+        <td>선택 가능</td>
+        <td>570,000</td>
+        <td>584,000</td>
+        <td>100%</td>
+        <td>정상</td>
+        <td style="color:red;">매진</td>
       </tr>
 
       <tr>
-        <td contenteditable="true" data-key="r4c1">4</td>
-        <td contenteditable="true" data-key="r4c2">400,000</td>
-        <td contenteditable="true" data-key="r4c3">350,000</td>
-        <td contenteditable="true" data-key="r4c4">지연</td>
-        <td contenteditable="true" data-key="r4c5">D서비스</td>
+        <td>4</td>
+        <td>선택 가능</td>
+        <td>730,000</td>
+        <td>876,000</td>
+        <td>100%</td>
+        <td>정상</td>
+        <td style="color:red;">매진</td>
       </tr>
     </tbody>
   </table>
 </div>
 
+<!-- ✨ 자동 저장 스크립트 -->
 <script>
-/* --- 자동 저장(localStorage) --- */
-document.querySelectorAll("[contenteditable]").forEach(cell => {
-  const key = cell.dataset.key;
-  const saved = localStorage.getItem(key);
-  if (saved !== null) cell.innerText = saved;
+  const table = document.getElementById("dataTable");
+  const STORAGE_KEY = "realtime_table_data_v2";
 
-  cell.addEventListener("input", () => {
-    localStorage.setItem(key, cell.innerText);
+  /* 저장된 값 불러오기 */
+  function loadSavedData() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return;
+
+    const data = JSON.parse(saved);
+    const rows = table.querySelectorAll("tbody tr");
+
+    rows.forEach((row, rIdx) => {
+      const cells = row.querySelectorAll("td");
+      cells.forEach((cell, cIdx) => {
+        if (data[rIdx] && data[rIdx][cIdx] !== undefined) {
+          cell.innerText = data[rIdx][cIdx];
+        }
+      });
+    });
+  }
+
+  /* 현재 표 데이터 저장 */
+  function saveTableData() {
+    const rows = table.querySelectorAll("tbody tr");
+    let data = [];
+
+    rows.forEach(row => {
+      const rowData = [];
+      row.querySelectorAll("td").forEach(cell => {
+        rowData.push(cell.innerText);
+      });
+      data.push(rowData);
+    });
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  /* 셀 클릭 → 수정 가능 */
+  document.querySelectorAll("tbody td").forEach(cell => {
+    cell.addEventListener("click", function () {
+
+      if (cell.classList.contains("editing")) return;
+
+      const original = cell.innerText;
+      cell.classList.add("editing");
+
+      const input = document.createElement("input");
+      input.value = original;
+
+      cell.innerHTML = "";
+      cell.appendChild(input);
+      input.focus();
+
+      const finish = () => {
+        cell.classList.remove("editing");
+        cell.innerText = input.value;
+        saveTableData();
+      };
+
+      input.addEventListener("keydown", e => {
+        if (e.key === "Enter") finish();
+      });
+      input.addEventListener("blur", finish);
+    });
   });
-});
+
+  loadSavedData();
 </script>
 
 </body>
