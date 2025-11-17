@@ -1,178 +1,207 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <title>Noblesse — 카드 에디터</title>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="utf-8" />
+<title>Noblesse — 카드 편집기</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="stylesheet" href="style.css" />
+<style>
+  .editor-shell{ max-width:1200px; margin:24px auto; display:flex; gap:18px; align-items:flex-start; padding:12px; }
+  .controls{ width:360px; }
+  .canvas-area{ flex:1; display:flex; justify-content:center; align-items:center; }
+  .hint{ font-size:13px; color:#ddd; margin-top:8px; }
+  .draggable-text{ cursor:move; }
+</style>
 </head>
-<body>
-  <h1>카드 편집기</h1>
+<body class="app-shell">
 
-  <div class="container">
-    <!-- 미리보기 -->
-    <div class="preview">
-      <canvas id="cardCanvas" aria-label="카드 미리보기"></canvas>
-      <div class="note">실시간 미리보기 — 저장 후 다운로드하세요.</div>
-    </div>
-
-    <!-- 컨트롤 패널 -->
-    <div class="panel">
-      <div id="context" style="font-weight:800; margin-bottom:8px;">메뉴 - VIP</div>
-
-      <label>이름 (ID)</label>
-      <input id="inputID" type="text" value="ID: 홍길동">
-
-      <label>Card No</label>
-      <input id="inputCard" type="text" value="CARD NO: 0000000000">
-
-      <label>이름 폰트 크기(px)</label>
-      <input id="sizeName" type="number" value="23" min="8" max="140">
-
-      <label>번호 폰트 크기(px)</label>
-      <input id="sizeNo" type="number" value="23" min="8" max="100">
-
-      <label>텍스트 색상</label>
-      <input id="colorText" type="color" value="#F6EAD2">
-
-      <div class="row">
-        <button class="btn save" id="btnSave">메뉴별 저장</button>
-        <button class="btn download" id="btnDownload">PNG 다운로드</button>
-      </div>
-
-      <div style="margin-top:12px; font-size:13px; color:#ddd;">
-        저장 = 브라우저 localStorage (기기별 저장).<br>
-        메뉴에서 이 페이지로 올 때 URL에 <code>?menu=n&vip=m</code> 가 있어야 구분 저장됩니다.
-      </div>
+<div class="container editor-shell">
+  <div class="canvas-area">
+    <div class="canvas-wrap" id="canvasWrap">
+      <canvas id="cardCanvas" width="1024" height="490"></canvas>
+      <!-- 편집용 오버레이 (드래그 대상으로 사용) -->
+      <div id="overlayText" class="draggable-text" style="display:none;">노블레스</div>
     </div>
   </div>
 
+  <div class="controls">
+    <h2 style="margin:0 0 8px 0">카드 텍스트 편집</h2>
+
+    <label>표시 텍스트</label>
+    <input id="txtInput" type="text" value="노블레스" />
+
+    <label>폰트 크기 (px)</label>
+    <input id="fontSize" type="number" value="48" min="12" />
+
+    <label>폰트 색상</label>
+    <input id="fontColor" type="color" value="#f6e3b5" />
+
+    <label>폰트 계열</label>
+    <select id="fontFamily">
+      <option value="Nanum Myeongjo, serif">Nanum Myeongjo</option>
+      <option value="Noto Sans KR, sans-serif">Noto Sans KR</option>
+      <option value="Georgia, serif">Georgia</option>
+      <option value="Arial, sans-serif">Arial</option>
+    </select>
+
+    <div class="row" style="margin-top:12px;">
+      <button class="btn save" id="btnDownload">이미지로 저장</button>
+      <button class="btn alt" id="btnReset">초기화</button>
+    </div>
+
+    <div class="hint">텍스트를 캔버스 위로 드래그해서 위치를 조정하세요. 변경은 자동 저장됩니다.</div>
+  </div>
+</div>
+
 <script>
-/* ---------- 헬퍼 ---------- */
-function qp(name){
-  return new URL(location.href).searchParams.get(name);
-}
-const menuNum = qp('menu') || '1';
-const vipNum = qp('vip') || '1';
-document.getElementById('context').innerText = `메뉴 ${menuNum} · VIP ${vipNum}`;
+(function(){
+  // 파라미터에서 vip 가져오기 (기본 1)
+  const params = new URLSearchParams(location.search);
+  const vip = params.get('vip') || '1';
+  const imgSrc = `vip${vip}.png`; // vip1.png ~ vip3.png
 
-/* ---------- 요소 ---------- */
-const canvas = document.getElementById('cardCanvas');
-const ctx = canvas.getContext('2d');
-const inputID = document.getElementById('inputID');
-const inputCard = document.getElementById('inputCard');
-const sizeName = document.getElementById('sizeName');
-const sizeNo = document.getElementById('sizeNo');
-const colorText = document.getElementById('colorText');
-const btnSave = document.getElementById('btnSave');
-const btnDownload = document.getElementById('btnDownload');
+  const canvas = document.getElementById('cardCanvas');
+  const ctx = canvas.getContext('2d');
+  const overlay = document.getElementById('overlayText');
+  const txtInput = document.getElementById('txtInput');
+  const fontSizeInput = document.getElementById('fontSize');
+  const colorInput = document.getElementById('fontColor');
+  const fontFamilySelect = document.getElementById('fontFamily');
+  const btnDownload = document.getElementById('btnDownload');
+  const btnReset = document.getElementById('btnReset');
 
-/* 이미지 경로 */
-const imgSrc = `img/vip${vipNum}.png`;
-const baseImg = new Image();
-baseImg.src = imgSrc;
-baseImg.crossOrigin = "anonymous";
+  const STORAGE_KEY = `noblesse_card_v${vip}`;
 
-/* 기본 캔버스 사이즈 */
-const DEFAULT = { w:1024, h:1024 };
-canvas.width = DEFAULT.w;
-canvas.height = DEFAULT.h;
-
-/* 로드 시 저장값 불러오기 */
-const storageKey = (menu, vip) => `noblesse_menu${menu}_vip${vip}`;
-(function loadSaved(){
-  const raw = localStorage.getItem(storageKey(menuNum, vipNum));
-  if (raw){
-    try {
-      const obj = JSON.parse(raw);
-
-      // 저장된 값 불러오되 ID:, CARD NO: 자동으로 붙여줌
-      inputID.value = obj.id ? `ID: ${obj.id.replace(/^ID:\s*/,'')}` : "ID: 홍길동";
-      inputCard.value = obj.card ? `CARD NO: ${obj.card.replace(/^CARD NO:\s*/,'')}` : "CARD NO: 0000000000";
-
-      if (obj.sizeName) sizeName.value = obj.sizeName;
-      if (obj.sizeNo) sizeNo.value = obj.sizeNo;
-      if (obj.color) colorText.value = obj.color;
-    } catch(e){ console.warn(e); }
-  }
-})();
-
-/* 렌더 함수 */
-function render(){
-  // 캔버스 리사이즈
-  if (baseImg && baseImg.naturalWidth){
-    canvas.width = baseImg.naturalWidth;
-    canvas.height = baseImg.naturalHeight;
-  }
-
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  if (baseImg.complete && baseImg.naturalWidth){
-    ctx.drawImage(baseImg, 0, 0, canvas.width, canvas.height);
-  }
-
-  // 텍스트 값
-  const idText = inputID.value || "ID: 홍길동";
-  const cardText = inputCard.value || "CARD NO: 0000000000";
-
-  const padX = Math.round(canvas.width * 0.48);
-  const baseY = Math.round(canvas.height * 0.58);
-
-  const nameSize = parseInt(sizeName.value) || 23;
-  const noSize = parseInt(sizeNo.value) || 23;
-  const txtColor = colorText.value || "#F6EAD2";
-
-  ctx.shadowColor = "rgba(0,0,0,0.6)";
-  ctx.shadowBlur = 6;
-
-  /* 이름 */
-  ctx.fillStyle = txtColor;
-  ctx.font = `${nameSize}px sans-serif`;
-  ctx.fillText(idText, padX, baseY + 120);
-
-  /* 번호 */
-  ctx.font = `${noSize}px sans-serif`;
-  ctx.fillText(cardText, padX, baseY + 142);
-
-  ctx.lineWidth = Math.max(1, Math.round(noSize * 0.06));
-  ctx.strokeStyle = "rgba(0,0,0,0.45)";
-}
-
-/* 이벤트 → 즉시 렌더 */
-[inputID, inputCard, sizeName, sizeNo, colorText].forEach(el=>{
-  el.addEventListener('input', render);
-});
-
-/* 이미지 로드 후 렌더 */
-baseImg.onload = render;
-
-/* 저장 */
-btnSave.addEventListener('click', ()=>{
-  const data = {
-    id: inputID.value,
-    card: inputCard.value,
-    sizeName: sizeName.value,
-    sizeNo: sizeNo.value,
-    color: colorText.value
+  // 기본 state
+  let state = {
+    text: txtInput.value,
+    fontSize: parseInt(fontSizeInput.value,10),
+    color: colorInput.value,
+    fontFamily: fontFamilySelect.value,
+    x: canvas.width/2,
+    y: canvas.height - 60
   };
-  localStorage.setItem(storageKey(menuNum, vipNum), JSON.stringify(data));
-  alert('저장되었습니다.');
-});
 
-/* 다운로드 */
-btnDownload.addEventListener('click', ()=>{
-  render();
-  canvas.toBlob(function(blob){
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    const safeName = (inputID.value || 'user').replace(/[^\w\-]/g,'_');
-    link.download = `menu${menuNum}_vip${vipNum}_${safeName}.png`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(link.href);
-  }, 'image/png');
-});
+  // 이미지 로드
+  const baseImg = new Image();
+  baseImg.src = imgSrc;
+  baseImg.onload = () => { loadSaved(); render(); showOverlay(); };
 
-setTimeout(render, 300);
+  // overlay 표시 및 동기화
+  function showOverlay(){
+    overlay.style.display = 'block';
+    overlay.style.left = state.x + 'px';
+    overlay.style.top = state.y + 'px';
+    overlay.style.fontSize = state.fontSize + 'px';
+    overlay.style.color = state.color;
+    overlay.style.fontFamily = state.fontFamily;
+    overlay.innerText = state.text;
+    // 중앙 기준 변환 제거 (we use absolute coords)
+    overlay.style.transform = 'translate(-50%,-50%)';
+  }
+
+  // 렌더: 이미지 + 텍스트
+  function render(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    // 배경 이미지 크기 맞춰 그리기 (원본 비율 가정 이미지 == 캔버스 비율)
+    ctx.drawImage(baseImg,0,0,canvas.width,canvas.height);
+    // 텍스트
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = state.color;
+    ctx.font = `${state.fontSize}px ${state.fontFamily}`;
+    // 그림자로 가독성 보강
+    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+    ctx.shadowBlur = 10;
+    ctx.fillText(state.text, state.x, state.y);
+    ctx.shadowBlur = 0;
+  }
+
+  // 드래그 처리 (pointer events for desktop/mobile)
+  let dragging = false, dragOffset = {x:0,y:0};
+  overlay.addEventListener('pointerdown', (e)=>{
+    dragging = true;
+    const rect = overlay.getBoundingClientRect();
+    dragOffset.x = e.clientX - rect.left - rect.width/2;
+    dragOffset.y = e.clientY - rect.top - rect.height/2;
+    overlay.setPointerCapture(e.pointerId);
+  });
+  window.addEventListener('pointermove', (e)=>{
+    if(!dragging) return;
+    // compute position relative to canvasWrap / canvas
+    const canvasRect = canvas.getBoundingClientRect();
+    let cx = e.clientX - canvasRect.left - dragOffset.x;
+    let cy = e.clientY - canvasRect.top - dragOffset.y;
+    // clamp inside canvas
+    cx = Math.max(0, Math.min(canvas.width, cx));
+    cy = Math.max(0, Math.min(canvas.height, cy));
+    state.x = cx;
+    state.y = cy;
+    showOverlay();
+    render();
+  });
+  window.addEventListener('pointerup', (e)=>{
+    if(dragging){
+      dragging=false;
+      saveState();
+    }
+  });
+
+  // 컨트롤 반영
+  txtInput.addEventListener('input', ()=>{ state.text = txtInput.value; showOverlay(); render(); saveStateDebounced(); });
+  fontSizeInput.addEventListener('input', ()=>{ state.fontSize = parseInt(fontSizeInput.value||36,10); showOverlay(); render(); saveStateDebounced(); });
+  colorInput.addEventListener('input', ()=>{ state.color = colorInput.value; showOverlay(); render(); saveStateDebounced(); });
+  fontFamilySelect.addEventListener('change', ()=>{ state.fontFamily = fontFamilySelect.value; showOverlay(); render(); saveStateDebounced(); });
+
+  // 다운로드: 그대로 캔버스에 다시 그려서 export
+  btnDownload.addEventListener('click', ()=>{
+    render(); // ensure up-to-date
+    const url = canvas.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `noblesse_card_v${vip}.png`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  });
+
+  // 초기화
+  btnReset.addEventListener('click', ()=>{
+    localStorage.removeItem(STORAGE_KEY);
+    state = { text: '노블레스', fontSize:48, color:'#f6e3b5', fontFamily: 'Nanum Myeongjo, serif', x: canvas.width/2, y: canvas.height-60 };
+    txtInput.value = state.text;
+    fontSizeInput.value = state.fontSize;
+    colorInput.value = state.color;
+    fontFamilySelect.value = state.fontFamily;
+    showOverlay(); render(); saveState();
+  });
+
+  // 저장 / 불러오기
+  function saveState(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+  const saveStateDebounced = debounce(saveState, 300);
+
+  function loadSaved(){
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    try{
+      const s = JSON.parse(raw);
+      // merge
+      state = Object.assign(state, s);
+      // update controls
+      txtInput.value = state.text;
+      fontSizeInput.value = state.fontSize;
+      colorInput.value = state.color;
+      fontFamilySelect.value = state.fontFamily;
+    }catch(e){}
+  }
+
+  // util
+  function debounce(fn, t){ let to; return (...a)=>{ clearTimeout(to); to = setTimeout(()=>fn(...a), t); }; }
+
+})();
 </script>
+
 </body>
 </html>
