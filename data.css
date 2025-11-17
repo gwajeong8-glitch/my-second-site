@@ -1,6 +1,6 @@
 body {
   margin: 0;
-  background: #000;
+  background: #000 url("bak.png") no-repeat center center fixed;
   font-family: "Nanum Myeongjo", serif;
   color: #f7e7c3;
 }
