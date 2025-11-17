@@ -15,7 +15,7 @@
     height: 100vh;
   }
 
-  /* 왼쪽 사이드바 */
+  /* 왼쪽 메뉴 */
   .sidebar {
     width: 220px;
     background: #111;
@@ -26,16 +26,15 @@
   .sidebar h2 {
     color: #caa36a;
     font-size: 20px;
-    margin-bottom: 14px;
     text-align: center;
+    margin-bottom: 14px;
   }
 
   .menu-item {
     padding: 10px;
-    color: #fff;
-    cursor: pointer;
-    border-radius: 6px;
     margin-bottom: 6px;
+    border-radius: 6px;
+    cursor: pointer;
     transition: .2s;
   }
   .menu-item:hover {
@@ -47,36 +46,37 @@
     font-weight: 700;
   }
 
-  /* 오른쪽 컨텐츠 영역 */
+  /* 오른쪽 영역 */
   .content {
     flex: 1;
-    padding: 20px 26px;
+    padding: 24px 32px;
   }
 
+  /* 제목 (금색 아님!) */
   h1 {
-    margin-top: 0;
-    color: #caa36a;
+    color: #ffffff;
+    margin: 0 0 10px 0;
     font-size: 28px;
   }
 
+  /* 안내문만 금색 */
   .sub {
-    margin-bottom: 18px;
     color: #caa36a;
-    line-height: 1.5;
+    margin-bottom: 22px;
+    line-height: 1.6;
   }
 
-  /* 표 스타일 */
+  /* 표 */
   table {
     width: 100%;
     border-collapse: collapse;
     text-align: center;
-    font-size: 18px;
   }
 
   thead tr {
-    background: #4da3ff;  /* 진한 하늘색 */
+    background: #4da3ff; /* 진한 하늘색 */
     color: #000;
-    font-weight: 800;
+    font-weight: 900;
   }
 
   tbody tr {
@@ -86,21 +86,20 @@
   th, td {
     padding: 12px;
     border: 1px solid #000;
+    font-size: 17px;
   }
 
   td[contenteditable="true"] {
     background: rgba(255,255,255,0.15);
     outline: none;
   }
-
 </style>
 </head>
 <body>
 
-<!-- 왼쪽 사이드 메뉴 -->
+<!-- 왼쪽 메뉴 -->
 <div class="sidebar">
   <h2>📌 메뉴</h2>
-
   <div class="menu-item">메인 화면</div>
   <div class="menu-item">유저 관리</div>
   <div class="menu-item">로그 모니터</div>
@@ -110,11 +109,11 @@
   <div class="menu-item">보안 설정</div>
   <div class="menu-item">환경 설정</div>
   <div class="menu-item">담당 실장</div>
-
 </div>
 
-<!-- 오른쪽 메인 내용 -->
+<!-- 오른쪽 메인 -->
 <div class="content">
+
   <h1>실시간 데이터 현황</h1>
 
   <div class="sub">
@@ -122,7 +121,6 @@
     클릭 후 직접 수정할 수 있으며 수정 즉시 자동 저장됩니다.
   </div>
 
-  <!-- 데이터 테이블 -->
   <table>
     <thead>
       <tr>
@@ -171,7 +169,7 @@
 </div>
 
 <script>
-/* ---- 자동 저장 기능 ---- */
+/* --- 자동 저장(localStorage) --- */
 document.querySelectorAll("[contenteditable]").forEach(cell => {
   const key = cell.dataset.key;
   const saved = localStorage.getItem(key);
