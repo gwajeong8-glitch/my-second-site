@@ -1,110 +1,93 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=1024, user-scalable=no">
-  <title>실시간 데이터</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1024, user-scalable=no">
+<title>실시간 데이터</title>
 
-  <style>
-    body {
-      margin: 0;
-      background: #0a0a0a;
-      font-family: "Pretendard","Noto Sans KR",sans-serif;
-      color: #fff;
-    }
+<style>
+  body {
+    margin: 0;
+    background: #0a0a0a;
+    font-family: "Pretendard","Noto Sans KR",sans-serif;
+    color: #fff;
+  }
 
-    .layout {
-      width: 1024px;
-      height: 490px;
-      margin: 0 auto;
-      display: flex;
-    }
+  .layout {
+    width: 1024px;
+    height: 100%;
+    margin: 0 auto;
+    display: flex;
+  }
 
-    /* --- 왼쪽 메뉴 --- */
-    .left-menu {
-      width: 200px;
-      padding: 20px 10px;
-      font-size: 15px;
-      line-height: 1.9;
-      color: #d8d8d8;
-      font-weight: 500;
-    }
+  /* 왼쪽 메뉴 */
+  .left-menu {
+    width: 200px;
+    padding: 20px 10px;
+    font-size: 15px;
+    line-height: 1.9;
+    color: #d8d8d8;
+  }
 
-    .left-menu .title {
-      font-size: 15px;
-      font-weight: 700;
-      color: #fff;
-      margin-bottom: 12px;
-    }
+  .left-menu .title {
+    font-weight: 700;
+    color: white;
+    margin-bottom: 14px;
+  }
 
-    .left-menu div {
-      margin-bottom: 4px;
-    }
+  .active {
+    color: #ffd28a;
+    font-weight: 700;
+    text-shadow: 0 0 6px rgba(255,210,138,0.8);
+  }
 
-    /* 현재 페이지 강조 */
-    .active {
-      color: #ffd28a;
-      font-weight: 700;
-      text-shadow: 0 0 6px rgba(255,210,138,0.6);
-    }
+  .content {
+    flex: 1;
+    padding: 20px;
+    text-align: center;
+  }
 
-    /* --- 표 영역 --- */
-    .content {
-      flex: 1;
-      padding: 24px;
-    }
+  h2 {
+    font-size: 30px;
+    margin: 10px 0 18px 0;
+  }
 
-    h2 {
-      text-align: center;
-      font-size: 26px;
-      color: #f1f1f1;
-      margin-top: 10px;
-      margin-bottom: 16px;
-    }
+  .desc {
+    font-size: 15px;
+    margin-bottom: 20px;
+    color: #dcdcdc;
+    line-height: 1.5;
+  }
 
-    .desc {
-      text-align: center;
-      color: #d0d0d0;
-      font-size: 15px;
-      margin-bottom: 18px;
-    }
+  /* 표 스타일 */
+  table {
+    width: 800px;
+    margin: 0 auto;
+    border-collapse: collapse;
+    font-size: 16px;
+    font-weight: 600;
+  }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 15px;
-    }
+  thead th {
+    background: #d7f0f8;        /* 진한 하늘색 */
+    border: 1px solid #9fb6bf;
+    padding: 10px 0;
+    color: black;
+  }
 
-    thead th {
-      background: #eaeaea;
-      color: #000;
-      padding: 8px 0;
-      border: 1px solid #b0b0b0;
-      font-weight: 700;
-    }
+  tbody td {
+    background: #c9e9c9;         /* 진한 초초록색 */
+    border: 1px solid #98b798;
+    padding: 10px 0;
+    color: black;
+  }
 
-    tbody td {
-      border: 1px solid #999;
-      text-align: center;
-      padding: 8px 0;
-      font-weight: 600;
-      color: #000;
-    }
+  .sold {
+    color: #ff3b3b;
+    font-weight: 700;
+  }
 
-    tbody tr:nth-child(odd) {
-      background: #c7e3c5; /* 연초록 */
-    }
-
-    tbody tr:nth-child(even) {
-      background: #d4f0d0; /* 더 연한 연초록 */
-    }
-
-    .sold {
-      color: #ff4040;
-      font-weight: 700;
-    }
-
-  </style>
+</style>
 </head>
 
 <body>
@@ -123,7 +106,7 @@
     <div>전국 만남</div>
 
     <div>[관리/리더]</div>
-    <div class="active">실시간 데이터</div> <!-- 현재 페이지 강조 -->
+    <div class="active">실시간 데이터</div>
 
     <div>[데이터 분석]</div>
     <div>포인트 조회</div>
@@ -136,7 +119,7 @@
     <div>담당 실장</div>
   </div>
 
-  <!-- 표 영역 -->
+  <!-- 오른쪽 표 -->
   <div class="content">
 
     <h2>실시간 데이터 현황</h2>
@@ -147,8 +130,6 @@
     </div>
 
     <table>
-
-      <!-- 표 헤더 (고정) -->
       <thead>
         <tr>
           <th>번호</th>
@@ -161,8 +142,9 @@
         </tr>
       </thead>
 
-      <!-- 표 내용 (너가 직접 수정 가능) -->
       <tbody>
+
+        <!-- 수정 가능한 표 (숫자/문자 마음대로 변경 가능) -->
         <tr>
           <td>1</td>
           <td>선택 가능</td>
@@ -202,8 +184,8 @@
           <td>정상</td>
           <td class="sold">매진</td>
         </tr>
-      </tbody>
 
+      </tbody>
     </table>
 
   </div>
