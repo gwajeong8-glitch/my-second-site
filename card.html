@@ -113,8 +113,8 @@ function render(){
   const idText = inputID.value || "ID: 홍길동";
   const cardText = inputCard.value || "CARD NO: 0000000000";
 
-  const padX = Math.round(canvas.width * 0.63);
-  const baseY = Math.round(canvas.height * 0.83);
+  const padX = Math.round(canvas.width * 0.43);
+  const baseY = Math.round(canvas.height * 0.63);
 
   const nameSize = parseInt(sizeName.value) || 20;
   const noSize = parseInt(sizeNo.value) || 20;
@@ -126,11 +126,11 @@ function render(){
   /* 이름 */
   ctx.fillStyle = txtColor;
   ctx.font = `${nameSize}px sans-serif`;
-  ctx.fillText(idText, padX, baseY - 30);
+  ctx.fillText(idText, padX, baseY + 20);
 
   /* 번호 */
   ctx.font = `${noSize}px sans-serif`;
-  ctx.fillText(cardText, padX, baseY + 12);
+  ctx.fillText(cardText, padX, baseY + 62);
 
   ctx.lineWidth = Math.max(1, Math.round(noSize * 0.06));
   ctx.strokeStyle = "rgba(0,0,0,0.45)";
