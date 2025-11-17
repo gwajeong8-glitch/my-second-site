@@ -1,34 +1,30 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="utf-8" />
-  <title>Noblesse - 메인 메뉴</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+.index-root {
+  --bg: #0a0a0a;
+  --gold: #caa36a;
+  --btn-h: 72px;
+  --btn-w: 320px;
+}
 
-  <style>
-    /*************************************************
-      ▣ index.html 전용 스타일 (다른 페이지와 충돌 없음)
-    **************************************************/
-    .index-root {
-      --bg: #0a0a0a;
-      --gold: #caa36a;
-      --btn-h: 72px;
-      --btn-w: 320px;
-    }
-
-    html, body {
+html, body {
   margin: 0;
   height: 100%;
   color: #fff;
   font-family: "Inter", "Noto Sans KR", sans-serif;
-    }
-    h1 {
-      text-align: center;
-      padding: 32px 0;
-      font-size: 38px;
-      color: var(--gold, #caa36a);
-      letter-spacing: .5px;
-    }
+}
+
+/* ★ index 전용 배경 적용 */
+.index-page {
+  background: var(--bg, #0a0a0a);
+}
+
+h1 {
+  text-align: center;
+  padding: 32px 0;
+  font-size: 38px;
+  color: var(--gold, #caa36a);
+  letter-spacing: .5px;
+}
+
 
     /*********** 메뉴 영역 ***********/
     .index-menu-container {
