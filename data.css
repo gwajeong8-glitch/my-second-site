@@ -1,8 +1,9 @@
 body {
-  margin: 0;
-  background: #000 url("bak.png") no-repeat center center fixed;
-  font-family: "Nanum Myeongjo", serif;
-  color: #f7e7c3;
+  background: #000 url("bak.png") no-repeat center center fixed !important;
+  background-size: cover !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  color: #f7e7c3 !important;
 }
 
 .container {
