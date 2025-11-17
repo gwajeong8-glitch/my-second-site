@@ -1,207 +1,249 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
 <meta charset="utf-8" />
-<title>Noblesse — 카드 편집기</title>
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<link rel="stylesheet" href="style.css" />
+<title>Noblesse — Card Editor</title>
 <style>
-  .editor-shell{ max-width:1200px; margin:24px auto; display:flex; gap:18px; align-items:flex-start; padding:12px; }
-  .controls{ width:360px; }
-  .canvas-area{ flex:1; display:flex; justify-content:center; align-items:center; }
-  .hint{ font-size:13px; color:#ddd; margin-top:8px; }
-  .draggable-text{ cursor:move; }
+  :root{ --gold:#caa36a; --bg:#0a0a0a; }
+  html,body{margin:0;height:100%;font-family:"Nanum Myeongjo",serif;background:#0b0b0b;color:#f6e3b5;}
+  .wrap{display:flex;gap:18px;padding:18px;max-width:1200px;margin:0 auto;}
+  .canvas-box{background:#0f0f0f;padding:12px;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.6);}
+  canvas{display:block;border-radius:8px;background:#000;}
+  .controls{width:300px;}
+  .controls h3{margin:6px 0 8px;color:var(--gold)}
+  .row{margin:8px 0;}
+  input[type=text], input[type=number], select {width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:#111;color:#ffd}
+  input[type=color]{height:40px;width:100%}
+  button{padding:10px;border-radius:10px;border:none;background:linear-gradient(90deg,#ffd776,#cfa310);cursor:pointer;font-weight:700}
+  .muted{font-size:13px;color:#ddd;margin-top:6px}
 </style>
 </head>
-<body class="app-shell">
-
-<div class="container editor-shell">
-  <div class="canvas-area">
-    <div class="canvas-wrap" id="canvasWrap">
+<body>
+  <div class="wrap">
+    <div class="canvas-box">
       <canvas id="cardCanvas" width="1024" height="490"></canvas>
-      <!-- 편집용 오버레이 (드래그 대상으로 사용) -->
-      <div id="overlayText" class="draggable-text" style="display:none;">노블레스</div>
-    </div>
-  </div>
-
-  <div class="controls">
-    <h2 style="margin:0 0 8px 0">카드 텍스트 편집</h2>
-
-    <label>표시 텍스트</label>
-    <input id="txtInput" type="text" value="노블레스" />
-
-    <label>폰트 크기 (px)</label>
-    <input id="fontSize" type="number" value="48" min="12" />
-
-    <label>폰트 색상</label>
-    <input id="fontColor" type="color" value="#f6e3b5" />
-
-    <label>폰트 계열</label>
-    <select id="fontFamily">
-      <option value="Nanum Myeongjo, serif">Nanum Myeongjo</option>
-      <option value="Noto Sans KR, sans-serif">Noto Sans KR</option>
-      <option value="Georgia, serif">Georgia</option>
-      <option value="Arial, sans-serif">Arial</option>
-    </select>
-
-    <div class="row" style="margin-top:12px;">
-      <button class="btn save" id="btnDownload">이미지로 저장</button>
-      <button class="btn alt" id="btnReset">초기화</button>
+      <div class="muted">캔버스 크기: 1024×490 — 텍스트를 드래그해 위치를 조정하세요. 저장 후 이미지 다운로드</div>
     </div>
 
-    <div class="hint">텍스트를 캔버스 위로 드래그해서 위치를 조정하세요. 변경은 자동 저장됩니다.</div>
+    <div class="controls">
+      <h3>카드 텍스트 편집</h3>
+
+      <div class="row">
+        <label>표시 텍스트</label>
+        <input id="txtValue" type="text" value="노블레스">
+      </div>
+
+      <div class="row">
+        <label>폰트 (계열)</label>
+        <select id="fontFamily">
+          <option value="Nanum Myeongjo">Nanum Myeongjo</option>
+          <option value="Georgia">Georgia</option>
+          <option value="serif">serif</option>
+          <option value="Arial">Arial</option>
+        </select>
+      </div>
+
+      <div class="row">
+        <label>폰트 크기 (px)</label>
+        <input id="fontSize" type="number" value="64" min="12" max="220">
+      </div>
+
+      <div class="row">
+        <label>폰트 색상</label>
+        <input id="fontColor" type="color" value="#ffd27f">
+      </div>
+
+      <div class="row">
+        <label>VIP 이미지 선택</label>
+        <select id="vipSelect">
+          <option value="1">VIP 1</option>
+          <option value="2">VIP 2</option>
+          <option value="3">VIP 3</option>
+        </select>
+      </div>
+
+      <div class="row">
+        <button id="downloadBtn">이미지로 저장</button>
+        <button id="resetBtn" style="margin-left:8px;background:#222;color:#fff">초기화</button>
+      </div>
+
+      <div class="muted">텍스트 위치: 캔버스에서 직접 드래그. 폰트/색/크기 바꾸면 즉시 반영됩니다.</div>
+    </div>
   </div>
-</div>
 
 <script>
-(function(){
-  // 파라미터에서 vip 가져오기 (기본 1)
-  const params = new URLSearchParams(location.search);
-  const vip = params.get('vip') || '1';
-  const imgSrc = `vip${vip}.png`; // vip1.png ~ vip3.png
+/* --- 경로 규칙 (네가 준 구조에 맞춰져 있음) ---
+   bak.png  -> 루트 (card.html과 같은 위치)
+   VIP images -> img/vip1.png, img/vip2.png, img/vip3.png
+*/
 
-  const canvas = document.getElementById('cardCanvas');
-  const ctx = canvas.getContext('2d');
-  const overlay = document.getElementById('overlayText');
-  const txtInput = document.getElementById('txtInput');
-  const fontSizeInput = document.getElementById('fontSize');
-  const colorInput = document.getElementById('fontColor');
-  const fontFamilySelect = document.getElementById('fontFamily');
-  const btnDownload = document.getElementById('btnDownload');
-  const btnReset = document.getElementById('btnReset');
+const params = new URLSearchParams(location.search);
+const initialVip = params.get('vip') || '1';
 
-  const STORAGE_KEY = `noblesse_card_v${vip}`;
+const canvas = document.getElementById('cardCanvas');
+const ctx = canvas.getContext('2d');
 
-  // 기본 state
-  let state = {
-    text: txtInput.value,
-    fontSize: parseInt(fontSizeInput.value,10),
-    color: colorInput.value,
-    fontFamily: fontFamilySelect.value,
-    x: canvas.width/2,
-    y: canvas.height - 60
-  };
+const txtInput = document.getElementById('txtValue');
+const fontSizeInput = document.getElementById('fontSize');
+const fontFamilySelect = document.getElementById('fontFamily');
+const fontColorInput = document.getElementById('fontColor');
+const vipSelect = document.getElementById('vipSelect');
 
-  // 이미지 로드
-  const baseImg = new Image();
-  baseImg.src = imgSrc;
-  baseImg.onload = () => { loadSaved(); render(); showOverlay(); };
+vipSelect.value = initialVip;
 
-  // overlay 표시 및 동기화
-  function showOverlay(){
-    overlay.style.display = 'block';
-    overlay.style.left = state.x + 'px';
-    overlay.style.top = state.y + 'px';
-    overlay.style.fontSize = state.fontSize + 'px';
-    overlay.style.color = state.color;
-    overlay.style.fontFamily = state.fontFamily;
-    overlay.innerText = state.text;
-    // 중앙 기준 변환 제거 (we use absolute coords)
-    overlay.style.transform = 'translate(-50%,-50%)';
+// image objects
+const bg = new Image();
+bg.src = "bak.png"; // 루트
+
+const vipImg = new Image();
+vipImg.src = `img/vip${vipSelect.value}.png`;
+
+// text object (draggable)
+let textObj = {
+  text: txtInput.value,
+  size: parseInt(fontSizeInput.value,10),
+  family: fontFamilySelect.value,
+  color: fontColorInput.value,
+  x: canvas.width/2,
+  y: canvas.height*0.55,
+  align: 'center'
+};
+
+let isDragging = false;
+let dragOffset = {x:0,y:0};
+
+// draw function
+function draw(){
+  // clear
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // background (cover)
+  if (bg.complete) {
+    // draw center-cropped to exactly 1024x490 (bak.png expected to fit)
+    ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
+  } else {
+    bg.onload = draw;
   }
 
-  // 렌더: 이미지 + 텍스트
-  function render(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    // 배경 이미지 크기 맞춰 그리기 (원본 비율 가정 이미지 == 캔버스 비율)
-    ctx.drawImage(baseImg,0,0,canvas.width,canvas.height);
-    // 텍스트
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = state.color;
-    ctx.font = `${state.fontSize}px ${state.fontFamily}`;
-    // 그림자로 가독성 보강
-    ctx.shadowColor = 'rgba(0,0,0,0.5)';
-    ctx.shadowBlur = 10;
-    ctx.fillText(state.text, state.x, state.y);
-    ctx.shadowBlur = 0;
+  // vip image (on left-bottom or customize)
+  if (vipImg.complete) {
+    // scale vip image to fit height ~ 320, keep aspect ratio
+    const targetH = canvas.height * 0.7;
+    const ratio = vipImg.width / vipImg.height;
+    const w = targetH * ratio;
+    const h = targetH;
+    const x = canvas.width - w - 40; // right side
+    const y = canvas.height - h - 20;
+    ctx.drawImage(vipImg, x, y, w, h);
+  } else {
+    vipImg.onload = draw;
   }
 
-  // 드래그 처리 (pointer events for desktop/mobile)
-  let dragging = false, dragOffset = {x:0,y:0};
-  overlay.addEventListener('pointerdown', (e)=>{
-    dragging = true;
-    const rect = overlay.getBoundingClientRect();
-    dragOffset.x = e.clientX - rect.left - rect.width/2;
-    dragOffset.y = e.clientY - rect.top - rect.height/2;
-    overlay.setPointerCapture(e.pointerId);
-  });
-  window.addEventListener('pointermove', (e)=>{
-    if(!dragging) return;
-    // compute position relative to canvasWrap / canvas
-    const canvasRect = canvas.getBoundingClientRect();
-    let cx = e.clientX - canvasRect.left - dragOffset.x;
-    let cy = e.clientY - canvasRect.top - dragOffset.y;
-    // clamp inside canvas
-    cx = Math.max(0, Math.min(canvas.width, cx));
-    cy = Math.max(0, Math.min(canvas.height, cy));
-    state.x = cx;
-    state.y = cy;
-    showOverlay();
-    render();
-  });
-  window.addEventListener('pointerup', (e)=>{
-    if(dragging){
-      dragging=false;
-      saveState();
-    }
-  });
+  // text shadow + gold style
+  ctx.save();
+  ctx.textAlign = textObj.align;
+  ctx.textBaseline = 'middle';
 
-  // 컨트롤 반영
-  txtInput.addEventListener('input', ()=>{ state.text = txtInput.value; showOverlay(); render(); saveStateDebounced(); });
-  fontSizeInput.addEventListener('input', ()=>{ state.fontSize = parseInt(fontSizeInput.value||36,10); showOverlay(); render(); saveStateDebounced(); });
-  colorInput.addEventListener('input', ()=>{ state.color = colorInput.value; showOverlay(); render(); saveStateDebounced(); });
-  fontFamilySelect.addEventListener('change', ()=>{ state.fontFamily = fontFamilySelect.value; showOverlay(); render(); saveStateDebounced(); });
+  // create gold-ish fill using gradient
+  const fontStr = `${textObj.size}px ${textObj.family}`;
+  ctx.font = fontStr;
 
-  // 다운로드: 그대로 캔버스에 다시 그려서 export
-  btnDownload.addEventListener('click', ()=>{
-    render(); // ensure up-to-date
-    const url = canvas.toDataURL('image/png');
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `noblesse_card_v${vip}.png`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  });
+  // shadow glow
+  ctx.shadowColor = 'rgba(0,0,0,0.6)';
+  ctx.shadowBlur = 12;
+  ctx.lineWidth = Math.max(3, Math.round(textObj.size * 0.06));
 
-  // 초기화
-  btnReset.addEventListener('click', ()=>{
-    localStorage.removeItem(STORAGE_KEY);
-    state = { text: '노블레스', fontSize:48, color:'#f6e3b5', fontFamily: 'Nanum Myeongjo, serif', x: canvas.width/2, y: canvas.height-60 };
-    txtInput.value = state.text;
-    fontSizeInput.value = state.fontSize;
-    colorInput.value = state.color;
-    fontFamilySelect.value = state.fontFamily;
-    showOverlay(); render(); saveState();
-  });
+  // gold gradient
+  const grd = ctx.createLinearGradient(textObj.x - 200, textObj.y - 40, textObj.x + 200, textObj.y + 40);
+  grd.addColorStop(0, '#fff0c9');
+  grd.addColorStop(0.4, '#ffd27f');
+  grd.addColorStop(1, '#b8862b');
 
-  // 저장 / 불러오기
-  function saveState(){
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  ctx.fillStyle = grd;
+  ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+  ctx.lineJoin = 'round';
+  ctx.miterLimit = 2;
+  ctx.strokeText(textObj.text, textObj.x, textObj.y);
+  ctx.fillText(textObj.text, textObj.x, textObj.y);
+
+  ctx.restore();
+}
+
+// initial draw after images load
+bg.onload = () => { vipImg.onload = draw; };
+vipImg.onload = draw;
+
+// UI bindings
+txtInput.addEventListener('input', ()=>{ textObj.text = txtInput.value; draw(); });
+fontSizeInput.addEventListener('input', ()=>{ textObj.size = parseInt(fontSizeInput.value,10); draw(); });
+fontFamilySelect.addEventListener('change', ()=>{ textObj.family = fontFamilySelect.value; draw(); });
+fontColorInput.addEventListener('input', ()=>{ textObj.color = fontColorInput.value; draw(); });
+
+vipSelect.addEventListener('change', ()=>{
+  vipImg.src = `img/vip${vipSelect.value}.png`;
+  vipImg.onload = draw;
+});
+
+// drag logic on canvas (for text)
+canvas.addEventListener('mousedown', (e)=>{
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+  const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+
+  // measure text bounds
+  ctx.font = `${textObj.size}px ${textObj.family}`;
+  const metrics = ctx.measureText(textObj.text);
+  const w = metrics.width;
+  const h = textObj.size;
+
+  // simple hit test around text center
+  const left = textObj.x - w/2;
+  const right = textObj.x + w/2;
+  const top = textObj.y - h/2;
+  const bottom = textObj.y + h/2;
+
+  if (x >= left && x <= right && y >= top && y <= bottom){
+    isDragging = true;
+    dragOffset.x = x - textObj.x;
+    dragOffset.y = y - textObj.y;
   }
-  const saveStateDebounced = debounce(saveState, 300);
+});
+window.addEventListener('mousemove', (e)=>{
+  if (!isDragging) return;
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+  const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+  textObj.x = x - dragOffset.x;
+  textObj.y = y - dragOffset.y;
+  draw();
+});
+window.addEventListener('mouseup', ()=>{ isDragging = false; });
 
-  function loadSaved(){
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(!raw) return;
-    try{
-      const s = JSON.parse(raw);
-      // merge
-      state = Object.assign(state, s);
-      // update controls
-      txtInput.value = state.text;
-      fontSizeInput.value = state.fontSize;
-      colorInput.value = state.color;
-      fontFamilySelect.value = state.fontFamily;
-    }catch(e){}
-  }
+// download
+document.getElementById('downloadBtn').addEventListener('click', ()=>{
+  const link = document.createElement('a');
+  link.download = `noblesse_card_vip${vipSelect.value}.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+});
 
-  // util
-  function debounce(fn, t){ let to; return (...a)=>{ clearTimeout(to); to = setTimeout(()=>fn(...a), t); }; }
-
-})();
+// reset (simple)
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  txtInput.value = '노블레스';
+  fontSizeInput.value = 64;
+  fontFamilySelect.value = 'Nanum Myeongjo';
+  fontColorInput.value = '#ffd27f';
+  vipSelect.value = initialVip;
+  vipImg.src = `img/vip${vipSelect.value}.png`;
+  textObj.text = txtInput.value;
+  textObj.size = parseInt(fontSizeInput.value,10);
+  textObj.family = fontFamilySelect.value;
+  textObj.color = fontColorInput.value;
+  textObj.x = canvas.width/2;
+  textObj.y = canvas.height*0.55;
+  draw();
+});
 </script>
-
 </body>
 </html>
