@@ -126,11 +126,11 @@ function render(){
   /* 이름 */
   ctx.fillStyle = txtColor;
   ctx.font = `${nameSize}px sans-serif`;
-  ctx.fillText(idText, padX, baseY + 20);
+  ctx.fillText(idText, padX, baseY + 70);
 
   /* 번호 */
   ctx.font = `${noSize}px sans-serif`;
-  ctx.fillText(cardText, padX, baseY + 42);
+  ctx.fillText(cardText, padX, baseY + 92);
 
   ctx.lineWidth = Math.max(1, Math.round(noSize * 0.06));
   ctx.strokeStyle = "rgba(0,0,0,0.45)";
