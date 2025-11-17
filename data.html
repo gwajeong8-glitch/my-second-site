@@ -6,63 +6,82 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-  body{
-    margin:0;
-    background: url("bak.png") no-repeat center center fixed;
-    background-size: cover;
+  /* 배경 (이미지 파일 bak.png를 같은 폴더에 넣으세요) */
+  .data-page {
+    background: url("bak.png") no-repeat center top !important;
+    background-size: 1024px 490px !important;
+    background-attachment: scroll !important;
+  }
 
-    color:white;
-    font-family:"Noto Sans KR", sans-serif;
-    display:flex;
+  /* 기본 body 설정 */
+  body {
+    color: white;
+    font-family: "Noto Sans KR", sans-serif;
+    display: flex;
+    margin: 0;
+    padding: 0;
   }
 
   /* 왼쪽 메뉴 */
-  .left-menu{
-    width:180px;
-    padding:20px;
-    font-size:18px;
-    line-height:38px;
+  .left-menu {
+    width: 180px;
+    padding: 20px;
+    font-size: 18px;
+    line-height: 38px;
+    box-sizing: border-box;
   }
+
   .left-menu div{
-    cursor:pointer;
-    transition:0.2s;
+    cursor: pointer;
+    transition: 0.2s;
+    padding: 6px 8px;
+    border-radius: 6px;
   }
+
   .left-menu div:hover{
-    color:#ffd27f;
+    color: #ffd27f;
+    background: rgba(255, 220, 120, 0.04);
   }
+
   .active{
-    color:#ffe9ad;
-    font-weight:700;
-    text-shadow:0 0 10px #ffcb62;
+    color: #ffe9ad;
+    font-weight: 700;
+    text-shadow: 0 0 10px #ffcb62;
+    background: rgba(255, 220, 120, 0.06);
   }
 
   /* 오른쪽 컨텐츠 */
   .content{
-    flex:1;
-    padding:20px 40px;
-    text-align:center;
+    flex: 1;
+    padding: 20px 40px;
+    text-align: center;
+    box-sizing: border-box;
   }
 
   h1{
-    font-size:40px;
-    margin-bottom:10px;
+    font-size: 40px;
+    margin-bottom: 10px;
+    color: #f6e3b5;
   }
   .sub{
-    font-size:18px;
-    color:#e0e0e0;
-    margin-bottom:20px;
+    font-size: 18px;
+    color: #e0e0e0;
+    margin-bottom: 20px;
   }
 
   /* 표 스타일 */
   table{
     width:100%;
     max-width:1100px;
-    margin:auto;
+    margin: 12px auto 40px;
     border-collapse:collapse;
     font-size:20px;
     font-weight:600;
     text-align:center;
     color:#000;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+    border-radius:8px;
+    overflow:hidden;
   }
 
   thead tr{
@@ -78,7 +97,7 @@
   }
 
   td,th{
-    border:1px solid #333;
+    border:1px solid rgba(0,0,0,0.12);
     padding:10px;
   }
 
@@ -91,14 +110,23 @@
     border:none;
     outline:none;
     background:#fff;
+    box-sizing:border-box;
   }
 
-  /* 🔥 추가된 부분: gold 텍스트 */
+  /* 🔥 금색 텍스트 */
   .gold{ color:#ffd27f !important; font-weight:700; }
 
+  /* 반응형 (간단) */
+  @media (max-width:880px){
+    body { flex-direction: column; }
+    .left-menu { width:100%; display:flex; gap:8px; overflow-x:auto; }
+    .content { padding:16px; }
+    table { font-size:16px; }
+  }
 </style>
+
 </head>
-<body>
+<body class="data-page">
 
 <!-- 왼쪽 메뉴 -->
 <div class="left-menu">
@@ -124,13 +152,12 @@
 <!-- 오른쪽 내용 -->
 <div class="content">
   <h1>실시간 데이터 현황</h1>
-<div class="sub">
-  <br>
-  
-  <span class="gold">당신의 취향을 공유하며, 뜨거운 교감을 나눌 운명의 파트너. 은밀한 만남을 통해 최상의 만족감을 경험하세요.</span>
-</div>
+  <div class="sub">
+    <br>
+    <span class="gold">당신의 취향을 공유하며, 뜨거운 교감을 나눌 운명의 파트너. 은밀한 만남을 통해 최상의 만족감을 경험하세요.</span>
+  </div>
 
-  <table id="dataTable">
+  <table id="dataTable" aria-label="실시간 데이터 표">
     <thead>
       <tr>
         <th>번호</th>
@@ -187,7 +214,7 @@
   </table>
 </div>
 
-<!-- ✨ 자동 저장 스크립트 -->
+<!-- ✨ 자동 저장 스크립트 (원본 동작 그대로) -->
 <script>
   const table = document.getElementById("dataTable");
   const STORAGE_KEY = "realtime_table_data_v2";
@@ -227,35 +254,37 @@
   }
 
   /* 셀 클릭 → 수정 가능 */
-  document.querySelectorAll("tbody td").forEach(cell => {
-    cell.addEventListener("click", function () {
+  function enableEditing() {
+    document.querySelectorAll("tbody td").forEach(cell => {
+      cell.addEventListener("click", function () {
+        if (cell.classList.contains("editing")) return;
 
-      if (cell.classList.contains("editing")) return;
+        const original = cell.innerText;
+        cell.classList.add("editing");
 
-      const original = cell.innerText;
-      cell.classList.add("editing");
+        const input = document.createElement("input");
+        input.value = original;
 
-      const input = document.createElement("input");
-      input.value = original;
+        cell.innerHTML = "";
+        cell.appendChild(input);
+        input.focus();
 
-      cell.innerHTML = "";
-      cell.appendChild(input);
-      input.focus();
+        const finish = () => {
+          cell.classList.remove("editing");
+          cell.innerText = input.value;
+          saveTableData();
+        };
 
-      const finish = () => {
-        cell.classList.remove("editing");
-        cell.innerText = input.value;
-        saveTableData();
-      };
-
-      input.addEventListener("keydown", e => {
-        if (e.key === "Enter") finish();
+        input.addEventListener("keydown", e => {
+          if (e.key === "Enter") finish();
+        });
+        input.addEventListener("blur", finish);
       });
-      input.addEventListener("blur", finish);
     });
-  });
+  }
 
   loadSavedData();
+  enableEditing();
 </script>
 
 </body>
