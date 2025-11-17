@@ -26,10 +26,10 @@
       <input id="inputCard" type="text" value="CARD NO: 0000000000">
 
       <label>이름 폰트 크기(px)</label>
-      <input id="sizeName" type="number" value="40" min="8" max="140">
+      <input id="sizeName" type="number" value="23" min="8" max="140">
 
       <label>번호 폰트 크기(px)</label>
-      <input id="sizeNo" type="number" value="28" min="8" max="100">
+      <input id="sizeNo" type="number" value="23" min="8" max="100">
 
       <label>텍스트 색상</label>
       <input id="colorText" type="color" value="#F6EAD2">
@@ -110,14 +110,14 @@ function render(){
   }
 
   // 텍스트 값
-  const idText = inputID.value || "ID: 정대만";
-  const cardText = inputCard.value || "CARD NO: 8925089250";
+  const idText = inputID.value || "ID: 홍길동";
+  const cardText = inputCard.value || "CARD NO: 0000000000";
 
   const padX = Math.round(canvas.width * 0.28);
   const baseY = Math.round(canvas.height * 0.48);
 
-  const nameSize = parseInt(sizeName.value) || 20;
-  const noSize = parseInt(sizeNo.value) || 20;
+  const nameSize = parseInt(sizeName.value) || 23;
+  const noSize = parseInt(sizeNo.value) || 23;
   const txtColor = colorText.value || "#F6EAD2";
 
   ctx.shadowColor = "rgba(0,0,0,0.6)";
