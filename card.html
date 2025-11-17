@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>Noblesse — 카드 에디터</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>카드 편집기</h1>
+
+  <div class="container">
+    <!-- 미리보기 -->
+    <div class="preview">
+      <canvas id="cardCanvas" aria-label="카드 미리보기"></canvas>
+      <div class="note">실시간 미리보기 — 저장 후 다운로드하세요.</div>
+    </div>
+
+    <!-- 컨트롤 패널 -->
+    <div class="panel">
+      <div id="context" style="font-weight:800; margin-bottom:8px;">메뉴 - VIP</div>
+
+      <label>이름 (ID)</label>
+      <input id="inputID" type="text" placeholder="홍길동">
+
+      <label>Card No</label>
+      <input id="inputCard" type="text" placeholder="0000000000">
+
+      <label>이름 폰트 크기(px)</label>
+      <input id="sizeName" type="number" value="40" min="8" max="140">
+
+      <label>번호 폰트 크기(px)</label>
+      <input id="sizeNo" type="number" value="28" min="8" max="100">
+
+      <label>텍스트 색상</label>
+      <input id="colorText" type="color" value="#F6EAD2">
+
+      <div class="row">
+        <button class="btn save" id="btnSave">메뉴별 저장</button>
+        <button class="btn download" id="btnDownload">PNG 다운로드</button>
+      </div>
+
+      <div style="margin-top:12px; font-size:13px; color:#ddd;">
+        저장 = 브라우저 localStorage (기기별 저장).<br>
+        메뉴에서 이 페이지로 올 때 URL에 <code>?menu=n&vip=m</code> 가 있어야 구분 저장됩니다.
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ---------- 헬퍼 ---------- */
+function qp(name){
+  return new URL(location.href).searchParams.get(name);
+}
+const menuNum = qp('menu') || '1';
+const vipNum = qp('vip') || '1';
+document.getElementById('context').innerText = `메뉴 ${menuNum} · VIP ${vipNum}`;
+
+/* ---------- 요소 ---------- */
+const canvas = document.getElementById('cardCanvas');
+const ctx = canvas.getContext('2d');
+const inputID = document.getElementById('inputID');
+const inputCard = document.getElementById('inputCard');
+const sizeName = document.getElementById('sizeName');
+const sizeNo = document.getElementById('sizeNo');
+const colorText = document.getElementById('colorText');
+const btnSave = document.getElementById('btnSave');
+const btnDownload = document.getElementById('btnDownload');
+
+/* 이미지 경로 (네 이미지 그대로 사용) */
+const imgSrc = `img/vip${vipNum}.png`;
+const baseImg = new Image();
+baseImg.src = imgSrc;
+baseImg.crossOrigin = "anonymous";
+
+/* 기본 캔버스 사이즈 (이미지 로드 후 조절) */
+const DEFAULT = { w:1024, h:1024 };
+canvas.width = DEFAULT.w;
+canvas.height = DEFAULT.h;
+
+/* 로드 시 저장값 불러오기 */
+const storageKey = (menu, vip) => `noblesse_menu${menu}_vip${vip}`;
+(function loadSaved(){
+  const raw = localStorage.getItem(storageKey(menuNum, vipNum));
+  if (raw){
+    try {
+      const obj = JSON.parse(raw);
+      inputID.value = obj.id || '';
+      inputCard.value = obj.card || '';
+      if (obj.sizeName) sizeName.value = obj.sizeName;
+      if (obj.sizeNo) sizeNo.value = obj.sizeNo;
+      if (obj.color) colorText.value = obj.color;
+    } catch(e){ console.warn(e); }
+  }
+})();
+
+/* 렌더 함수 */
+function render(){
+  // 캔버스 크기 동기화 (이미지 기준)
+  if (baseImg && baseImg.naturalWidth){
+    canvas.width = baseImg.naturalWidth;
+    canvas.height = baseImg.naturalHeight;
+  } else {
+    canvas.width = DEFAULT.w;
+    canvas.height = DEFAULT.h;
+  }
+
+  // 배경
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  if (baseImg.complete && baseImg.naturalWidth){
+    ctx.drawImage(baseImg, 0, 0, canvas.width, canvas.height);
+  } else {
+    ctx.fillStyle = "#111";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+  }
+
+  // 텍스트 값
+  const idText = inputID.value || "";
+  const cardText = inputCard.value || "";
+
+  // 위치: 이미지 디자인에 따라 값 조절 가능
+  const padX = Math.round(canvas.width * 0.08);
+  const baseY = Math.round(canvas.height * 0.78);
+
+  // 스타일
+  const nameSize = parseInt(sizeName.value) || 40;
+  const noSize = parseInt(sizeNo.value) || 28;
+  const txtColor = colorText.value || "#F6EAD2";
+  const fontFamily = "sans-serif";
+
+  // 그림자/글로우
+  ctx.shadowColor = "rgba(0,0,0,0.6)";
+  ctx.shadowBlur = 6;
+
+  // 이름 그리기
+  ctx.fillStyle = txtColor;
+  ctx.font = `${nameSize}px ${fontFamily}`;
+  ctx.textBaseline = "alphabetic";
+  ctx.fillText(idText, padX, baseY - 30);
+
+  // 카드번호
+  ctx.font = `${noSize}px ${fontFamily}`;
+  ctx.fillText(cardText, padX, baseY + 12);
+
+  // stroke 약간 (선명)
+  ctx.lineWidth = Math.max(1, Math.round(noSize * 0.06));
+  ctx.strokeStyle = "rgba(0,0,0,0.45)";
+  ctx.strokeText(cardText, padX, baseY + 12);
+}
+
+/* 이벤트 바인딩: 입력 즉시 렌더 */
+[inputID, inputCard, sizeName, sizeNo, colorText].forEach(el=>{
+  el.addEventListener('input', ()=>{ render(); });
+});
+
+/* 이미지 로드 후 렌더 */
+baseImg.onload = ()=>{ render(); };
+
+/* 저장 */
+btnSave.addEventListener('click', ()=>{
+  const data = {
+    id: inputID.value,
+    card: inputCard.value,
+    sizeName: sizeName.value,
+    sizeNo: sizeNo.value,
+    color: colorText.value
+  };
+  localStorage.setItem(storageKey(menuNum, vipNum), JSON.stringify(data));
+  alert('저장되었습니다. (브라우저 localStorage)');
+});
+
+/* 다운로드 */
+btnDownload.addEventListener('click', ()=>{
+  render();
+  canvas.toBlob(function(blob){
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    const safeName = (inputID.value || 'user').replace(/[^\w\-]/g,'_');
+    link.download = `menu${menuNum}_vip${vipNum}_${safeName}.png`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(link.href);
+  }, 'image/png');
+});
+
+/* 처음 렌더 시 (fallback) */
+setTimeout(()=>{ render(); }, 300);
+</script>
+</body>
+</html>
