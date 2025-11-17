@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>Noblesse - 메뉴 선택</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>Noblesse — 메뉴 선택</h1>
+
+  <div class="menu-list" id="menuList"></div>
+
+<script>
+  const menuList = document.getElementById('menuList');
+  for (let i=1;i<=10;i++){
+    const a = document.createElement('a');
+    a.className = 'menu-button';
+    a.href = `vip.html?menu=${i}`;
+    a.innerText = `${i}번 메뉴`;
+    menuList.appendChild(a);
+  }
+</script>
+</body>
+</html>
