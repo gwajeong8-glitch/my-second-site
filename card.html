@@ -20,10 +20,10 @@
       <div id="context" style="font-weight:800; margin-bottom:8px;">메뉴 - VIP</div>
 
       <label>이름 (ID)</label>
-      <input id="inputID" type="text" placeholder="홍길동">
+      <input id="inputID" type="text" value="ID: 홍길동">
 
       <label>Card No</label>
-      <input id="inputCard" type="text" placeholder="0000000000">
+      <input id="inputCard" type="text" value="CARD NO: 0000000000">
 
       <label>이름 폰트 크기(px)</label>
       <input id="sizeName" type="number" value="40" min="8" max="140">
@@ -66,13 +66,13 @@ const colorText = document.getElementById('colorText');
 const btnSave = document.getElementById('btnSave');
 const btnDownload = document.getElementById('btnDownload');
 
-/* 이미지 경로 (네 이미지 그대로 사용) */
+/* 이미지 경로 */
 const imgSrc = `img/vip${vipNum}.png`;
 const baseImg = new Image();
 baseImg.src = imgSrc;
 baseImg.crossOrigin = "anonymous";
 
-/* 기본 캔버스 사이즈 (이미지 로드 후 조절) */
+/* 기본 캔버스 사이즈 */
 const DEFAULT = { w:1024, h:1024 };
 canvas.width = DEFAULT.w;
 canvas.height = DEFAULT.h;
@@ -84,8 +84,11 @@ const storageKey = (menu, vip) => `noblesse_menu${menu}_vip${vip}`;
   if (raw){
     try {
       const obj = JSON.parse(raw);
-      inputID.value = obj.id || '';
-      inputCard.value = obj.card || '';
+
+      // 저장된 값 불러오되 ID:, CARD NO: 자동으로 붙여줌
+      inputID.value = obj.id ? `ID: ${obj.id.replace(/^ID:\s*/,'')}` : "ID: 홍길동";
+      inputCard.value = obj.card ? `CARD NO: ${obj.card.replace(/^CARD NO:\s*/,'')}` : "CARD NO: 0000000000";
+
       if (obj.sizeName) sizeName.value = obj.sizeName;
       if (obj.sizeNo) sizeNo.value = obj.sizeNo;
       if (obj.color) colorText.value = obj.color;
@@ -95,65 +98,52 @@ const storageKey = (menu, vip) => `noblesse_menu${menu}_vip${vip}`;
 
 /* 렌더 함수 */
 function render(){
-  // 캔버스 크기 동기화 (이미지 기준)
+  // 캔버스 리사이즈
   if (baseImg && baseImg.naturalWidth){
     canvas.width = baseImg.naturalWidth;
     canvas.height = baseImg.naturalHeight;
-  } else {
-    canvas.width = DEFAULT.w;
-    canvas.height = DEFAULT.h;
   }
 
-  // 배경
   ctx.clearRect(0,0,canvas.width,canvas.height);
   if (baseImg.complete && baseImg.naturalWidth){
     ctx.drawImage(baseImg, 0, 0, canvas.width, canvas.height);
-  } else {
-    ctx.fillStyle = "#111";
-    ctx.fillRect(0,0,canvas.width,canvas.height);
   }
 
   // 텍스트 값
-  const idText = inputID.value || "";
-  const cardText = inputCard.value || "";
+  const idText = inputID.value || "ID: 홍길동";
+  const cardText = inputCard.value || "CARD NO: 0000000000";
 
-  // 위치: 이미지 디자인에 따라 값 조절 가능
   const padX = Math.round(canvas.width * 0.08);
   const baseY = Math.round(canvas.height * 0.78);
 
-  // 스타일
   const nameSize = parseInt(sizeName.value) || 40;
   const noSize = parseInt(sizeNo.value) || 28;
   const txtColor = colorText.value || "#F6EAD2";
-  const fontFamily = "sans-serif";
 
-  // 그림자/글로우
   ctx.shadowColor = "rgba(0,0,0,0.6)";
   ctx.shadowBlur = 6;
 
-  // 이름 그리기
+  /* 이름 */
   ctx.fillStyle = txtColor;
-  ctx.font = `${nameSize}px ${fontFamily}`;
-  ctx.textBaseline = "alphabetic";
+  ctx.font = `${nameSize}px sans-serif`;
   ctx.fillText(idText, padX, baseY - 30);
 
-  // 카드번호
-  ctx.font = `${noSize}px ${fontFamily}`;
+  /* 번호 */
+  ctx.font = `${noSize}px sans-serif`;
   ctx.fillText(cardText, padX, baseY + 12);
 
-  // stroke 약간 (선명)
   ctx.lineWidth = Math.max(1, Math.round(noSize * 0.06));
   ctx.strokeStyle = "rgba(0,0,0,0.45)";
   ctx.strokeText(cardText, padX, baseY + 12);
 }
 
-/* 이벤트 바인딩: 입력 즉시 렌더 */
+/* 이벤트 → 즉시 렌더 */
 [inputID, inputCard, sizeName, sizeNo, colorText].forEach(el=>{
-  el.addEventListener('input', ()=>{ render(); });
+  el.addEventListener('input', render);
 });
 
 /* 이미지 로드 후 렌더 */
-baseImg.onload = ()=>{ render(); };
+baseImg.onload = render;
 
 /* 저장 */
 btnSave.addEventListener('click', ()=>{
@@ -165,7 +155,7 @@ btnSave.addEventListener('click', ()=>{
     color: colorText.value
   };
   localStorage.setItem(storageKey(menuNum, vipNum), JSON.stringify(data));
-  alert('저장되었습니다. (브라우저 localStorage)');
+  alert('저장되었습니다.');
 });
 
 /* 다운로드 */
@@ -183,8 +173,7 @@ btnDownload.addEventListener('click', ()=>{
   }, 'image/png');
 });
 
-/* 처음 렌더 시 (fallback) */
-setTimeout(()=>{ render(); }, 300);
+setTimeout(render, 300);
 </script>
 </body>
 </html>
