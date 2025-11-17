@@ -1,290 +1,41 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<title>실시간 데이터 현황</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<style>
-  /* 배경 (이미지 파일 bak.png를 같은 폴더에 넣으세요) */
-  .data-page {
-    background: url("bak.png") no-repeat center top !important;
-    background-size: 1024px 490px !important;
-    background-attachment: scroll !important;
-  }
-
-  /* 기본 body 설정 */
-  body {
-    color: white;
-    font-family: "Noto Sans KR", sans-serif;
-    display: flex;
-    margin: 0;
-    padding: 0;
-  }
-
-  /* 왼쪽 메뉴 */
-  .left-menu {
-    width: 180px;
-    padding: 20px;
-    font-size: 18px;
-    line-height: 38px;
-    box-sizing: border-box;
-  }
-
-  .left-menu div{
-    cursor: pointer;
-    transition: 0.2s;
-    padding: 6px 8px;
-    border-radius: 6px;
-  }
-
-  .left-menu div:hover{
-    color: #ffd27f;
-    background: rgba(255, 220, 120, 0.04);
-  }
-
-  .active{
-    color: #ffe9ad;
-    font-weight: 700;
-    text-shadow: 0 0 10px #ffcb62;
-    background: rgba(255, 220, 120, 0.06);
-  }
-
-  /* 오른쪽 컨텐츠 */
-  .content{
-    flex: 1;
-    padding: 20px 40px;
-    text-align: center;
-    box-sizing: border-box;
-  }
-
-  h1{
-    font-size: 40px;
-    margin-bottom: 10px;
-    color: #f6e3b5;
-  }
-  .sub{
-    font-size: 18px;
-    color: #e0e0e0;
-    margin-bottom: 20px;
-  }
-
-  /* 표 스타일 */
-  table{
-    width:100%;
-    max-width:1100px;
-    margin: 12px auto 40px;
-    border-collapse:collapse;
-    font-size:20px;
-    font-weight:600;
-    text-align:center;
-    color:#000;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.6);
-    border-radius:8px;
-    overflow:hidden;
-  }
-
-  thead tr{
-    background:#d7f1ff;  /* 진한 하늘색 */
-    height:60px;
-  }
-  tbody tr{
-    background:#d8f4d5; /* 진한 연초록 */
-    height:60px;
-  }
-  tbody tr:nth-child(even){
-    background:#c8edc3; /* 조금 더 짙은 초록 */
-  }
-
-  td,th{
-    border:1px solid rgba(0,0,0,0.12);
-    padding:10px;
-  }
-
-  /* 셀 수정 input */
-  td input{
-    width:95%;
-    height:38px;
-    font-size:18px;
-    font-weight:600;
-    border:none;
-    outline:none;
-    background:#fff;
-    box-sizing:border-box;
-  }
-
-  /* 🔥 금색 텍스트 */
-  .gold{ color:#ffd27f !important; font-weight:700; }
-
-  /* 반응형 (간단) */
-  @media (max-width:880px){
-    body { flex-direction: column; }
-    .left-menu { width:100%; display:flex; gap:8px; overflow-x:auto; }
-    .content { padding:16px; }
-    table { font-size:16px; }
-  }
-</style>
-
+<meta charset="utf-8" />
+<title>Noblesse Data Center</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="data.css" />
 </head>
 <body class="data-page">
 
-<!-- 왼쪽 메뉴 -->
-<div class="left-menu">
-  <div>메인 화면</div>
-  <div>[매칭/고객 상태]</div>
-  <div>주문 상태</div>
-  <div>인증 상담</div>
-  <div>[상담/문의]</div>
-  <div>전국 만남</div>
-  <div>[관리/리더]</div>
+  <div class="container">
+    <h1>실시간 데이터 대시보드</h1>
 
-  <div class="active">실시간 데이터</div> <!-- 활성화 표시 -->
+    <p class="subtitle">아래 카드들을 클릭하면 카드 편집기로 이동합니다.</p>
 
-  <div>[데이터 분석]</div>
-  <div>포인트 조회</div>
-  <div>유형 선택</div>
-  <div>회원 관리</div>
-  <div>회원 승인</div>
-  <div>회원 등록</div>
-  <div>담당 실장</div>
-</div>
-
-<!-- 오른쪽 내용 -->
-<div class="content">
-  <h1>실시간 데이터 현황</h1>
-  <div class="sub">
-    <br>
-    <span class="gold">당신의 취향을 공유하며, 뜨거운 교감을 나눌 운명의 파트너. 은밀한 만남을 통해 최상의 만족감을 경험하세요.</span>
+    <div class="card-grid" id="cardGrid"></div>
   </div>
 
-  <table id="dataTable" aria-label="실시간 데이터 표">
-    <thead>
-      <tr>
-        <th>번호</th>
-        <th>선택 유형</th>
-        <th>포인트 금액</th>
-        <th>환불 금액</th>
-        <th>정확도</th>
-        <th>데이터 상태</th>
-        <th>서비스</th>
-      </tr>
-    </thead>
-
-    <tbody>
-      <tr>
-        <td>1</td>
-        <td>선택 가능</td>
-        <td>120,000</td>
-        <td>250,500</td>
-        <td>100%</td>
-        <td>정상</td>
-        <td style="color:red;">매진</td>
-      </tr>
-
-      <tr>
-        <td>2</td>
-        <td>선택 가능</td>
-        <td>230,000</td>
-        <td>276,000</td>
-        <td>100%</td>
-        <td>정상</td>
-        <td style="color:red;">매진</td>
-      </tr>
-
-      <tr>
-        <td>3</td>
-        <td>선택 가능</td>
-        <td>570,000</td>
-        <td>584,000</td>
-        <td>100%</td>
-        <td>정상</td>
-        <td style="color:red;">매진</td>
-      </tr>
-
-      <tr>
-        <td>4</td>
-        <td>선택 가능</td>
-        <td>730,000</td>
-        <td>876,000</td>
-        <td>100%</td>
-        <td>정상</td>
-        <td style="color:red;">매진</td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-
-<!-- ✨ 자동 저장 스크립트 (원본 동작 그대로) -->
 <script>
-  const table = document.getElementById("dataTable");
-  const STORAGE_KEY = "realtime_table_data_v2";
+  // 대시보드용 카드 데이터 (미리보기)
+  const cards = [
+    { id:1, title:"VIP 1", sub:"120,000 · 정상", img:"vip1.png" },
+    { id:2, title:"VIP 2", sub:"230,000 · 정상", img:"vip2.png" },
+    { id:3, title:"VIP 3", sub:"570,000 · 정상", img:"vip3.png" },
+    { id:4, title:"VIP 1 (예비)", sub:"730,000 · 정상", img:"vip1.png" }
+  ];
 
-  /* 저장된 값 불러오기 */
-  function loadSavedData() {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (!saved) return;
-
-    const data = JSON.parse(saved);
-    const rows = table.querySelectorAll("tbody tr");
-
-    rows.forEach((row, rIdx) => {
-      const cells = row.querySelectorAll("td");
-      cells.forEach((cell, cIdx) => {
-        if (data[rIdx] && data[rIdx][cIdx] !== undefined) {
-          cell.innerText = data[rIdx][cIdx];
-        }
-      });
-    });
-  }
-
-  /* 현재 표 데이터 저장 */
-  function saveTableData() {
-    const rows = table.querySelectorAll("tbody tr");
-    let data = [];
-
-    rows.forEach(row => {
-      const rowData = [];
-      row.querySelectorAll("td").forEach(cell => {
-        rowData.push(cell.innerText);
-      });
-      data.push(rowData);
-    });
-
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  }
-
-  /* 셀 클릭 → 수정 가능 */
-  function enableEditing() {
-    document.querySelectorAll("tbody td").forEach(cell => {
-      cell.addEventListener("click", function () {
-        if (cell.classList.contains("editing")) return;
-
-        const original = cell.innerText;
-        cell.classList.add("editing");
-
-        const input = document.createElement("input");
-        input.value = original;
-
-        cell.innerHTML = "";
-        cell.appendChild(input);
-        input.focus();
-
-        const finish = () => {
-          cell.classList.remove("editing");
-          cell.innerText = input.value;
-          saveTableData();
-        };
-
-        input.addEventListener("keydown", e => {
-          if (e.key === "Enter") finish();
-        });
-        input.addEventListener("blur", finish);
-      });
-    });
-  }
-
-  loadSavedData();
-  enableEditing();
+  const container = document.getElementById('cardGrid');
+  cards.forEach(c=>{
+    const a = document.createElement('a');
+    a.href = `card.html?vip=${c.id<=3?c.id:1}`;
+    a.className = 'card';
+    a.innerHTML = `
+      <div style="height:180px; background-image:url('${c.img}'); background-size:cover; background-position:center; border-radius:8px;"></div>
+      <div style="padding-top:12px;"><div class="card-title">${c.title}</div><div class="card-desc">${c.sub}</div></div>
+    `;
+    container.appendChild(a);
+  });
 </script>
 
 </body>
