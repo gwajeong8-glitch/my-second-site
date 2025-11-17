@@ -1,33 +1,210 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <title>Noblesse Data Center</title>
-  <link rel="stylesheet" href="data.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1024, user-scalable=no">
+  <title>실시간 데이터</title>
+
+  <style>
+    body {
+      margin: 0;
+      background: #0a0a0a;
+      font-family: "Pretendard","Noto Sans KR",sans-serif;
+      color: #fff;
+    }
+
+    .layout {
+      width: 1024px;
+      height: 490px;
+      margin: 0 auto;
+      display: flex;
+    }
+
+    /* --- 왼쪽 메뉴 --- */
+    .left-menu {
+      width: 200px;
+      padding: 20px 10px;
+      font-size: 15px;
+      line-height: 1.9;
+      color: #d8d8d8;
+      font-weight: 500;
+    }
+
+    .left-menu .title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+
+    .left-menu div {
+      margin-bottom: 4px;
+    }
+
+    /* 현재 페이지 강조 */
+    .active {
+      color: #ffd28a;
+      font-weight: 700;
+      text-shadow: 0 0 6px rgba(255,210,138,0.6);
+    }
+
+    /* --- 표 영역 --- */
+    .content {
+      flex: 1;
+      padding: 24px;
+    }
+
+    h2 {
+      text-align: center;
+      font-size: 26px;
+      color: #f1f1f1;
+      margin-top: 10px;
+      margin-bottom: 16px;
+    }
+
+    .desc {
+      text-align: center;
+      color: #d0d0d0;
+      font-size: 15px;
+      margin-bottom: 18px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 15px;
+    }
+
+    thead th {
+      background: #eaeaea;
+      color: #000;
+      padding: 8px 0;
+      border: 1px solid #b0b0b0;
+      font-weight: 700;
+    }
+
+    tbody td {
+      border: 1px solid #999;
+      text-align: center;
+      padding: 8px 0;
+      font-weight: 600;
+      color: #000;
+    }
+
+    tbody tr:nth-child(odd) {
+      background: #c7e3c5; /* 연초록 */
+    }
+
+    tbody tr:nth-child(even) {
+      background: #d4f0d0; /* 더 연한 연초록 */
+    }
+
+    .sold {
+      color: #ff4040;
+      font-weight: 700;
+    }
+
+  </style>
 </head>
+
 <body>
 
-<div class="container fade-in">
+<div class="layout">
 
-  <h1 class="title">Noblesse Data Center</h1>
-  <p class="subtitle">데이터 조회 · 분석 · 기록을 위한 노블레스 전용 센터</p>
+  <!-- 왼쪽 메뉴 -->
+  <div class="left-menu">
+    <div class="title">메인 화면</div>
 
-  <div class="card-grid">
+    <div>[매칭/고객 상태]</div>
+    <div>주문 상태</div>
+    <div>인증 상담</div>
 
-    <a href="data-details.html" class="card">
-      <div class="card-title">📊 데이터 조회</div>
-      <div class="card-desc">회원 정보 · 보상 · VIP 등급 모든 정보를 조회합니다.</div>
-    </a>
+    <div>[상담/문의]</div>
+    <div>전국 만남</div>
 
-    <a href="data-details.html" class="card">
-      <div class="card-title">📝 고객 기록</div>
-      <div class="card-desc">고객 활동 내역 및 이용 기록을 확인합니다.</div>
-    </a>
+    <div>[관리/리더]</div>
+    <div class="active">실시간 데이터</div> <!-- 현재 페이지 강조 -->
 
-    <a href="data-details.html" class="card">
-      <div class="card-title">💳 VIP 분석</div>
-      <div class="card-desc">VIP 등급·점수·혜택을 자동 계산하여 보여줍니다.</div>
-    </a>
+    <div>[데이터 분석]</div>
+    <div>포인트 조회</div>
+    <div>유형 선택</div>
+
+    <div>회원 관리</div>
+    <div>회원 승인</div>
+    <div>회원 등록</div>
+
+    <div>담당 실장</div>
+  </div>
+
+  <!-- 표 영역 -->
+  <div class="content">
+
+    <h2>실시간 데이터 현황</h2>
+
+    <div class="desc">
+      아래 표의 데이터 값(포인트 금액·환불 금액·상태·서비스 등)은<br>
+      HTML 안에서 직접 수정할 수 있도록 설계되어 있습니다.
+    </div>
+
+    <table>
+
+      <!-- 표 헤더 (고정) -->
+      <thead>
+        <tr>
+          <th>번호</th>
+          <th>선택 유형</th>
+          <th>포인트 금액</th>
+          <th>환불 금액</th>
+          <th>정확도</th>
+          <th>데이터 상태</th>
+          <th>서비스</th>
+        </tr>
+      </thead>
+
+      <!-- 표 내용 (너가 직접 수정 가능) -->
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>선택 가능</td>
+          <td>120,000</td>
+          <td>250,500</td>
+          <td>100%</td>
+          <td>정상</td>
+          <td class="sold">매진</td>
+        </tr>
+
+        <tr>
+          <td>2</td>
+          <td>선택 가능</td>
+          <td>230,000</td>
+          <td>276,000</td>
+          <td>100%</td>
+          <td>정상</td>
+          <td class="sold">매진</td>
+        </tr>
+
+        <tr>
+          <td>3</td>
+          <td>선택 가능</td>
+          <td>570,000</td>
+          <td>584,000</td>
+          <td>100%</td>
+          <td>정상</td>
+          <td class="sold">매진</td>
+        </tr>
+
+        <tr>
+          <td>4</td>
+          <td>선택 가능</td>
+          <td>730,000</td>
+          <td>876,000</td>
+          <td>100%</td>
+          <td>정상</td>
+          <td class="sold">매진</td>
+        </tr>
+      </tbody>
+
+    </table>
 
   </div>
 
