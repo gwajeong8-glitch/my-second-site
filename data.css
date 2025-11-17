@@ -1,0 +1,142 @@
+body {
+  margin: 0;
+  background: #000;
+  font-family: "Nanum Myeongjo", serif;
+  color: #f7e7c3;
+}
+
+.container {
+  max-width: 880px;
+  margin: 60px auto;
+  padding: 20px;
+}
+
+.fade-in {
+  animation: fadeIn 0.9s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.title {
+  text-align: center;
+  font-size: 42px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #f6e3b5;
+  text-shadow: 0 0 12px rgba(255, 230, 160, 0.6);
+}
+
+.subtitle {
+  text-align: center;
+  font-size: 16px;
+  opacity: 0.8;
+  margin-bottom: 40px;
+}
+
+/* 카드 메뉴 */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 25px;
+}
+
+.card {
+  background: rgba(20,20,20,0.85);
+  padding: 25px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,220,150,0.35);
+  text-decoration: none;
+  color: #f7e7c3;
+  transition: 0.3s;
+  box-shadow: 0 0 12px rgba(255,200,130,0.15);
+}
+
+.card:hover {
+  background: rgba(32,32,32,0.95);
+  transform: translateY(-6px);
+  box-shadow: 0 0 20px rgba(255,220,140,0.45);
+}
+
+.card-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.card-desc {
+  font-size: 15px;
+  opacity: 0.85;
+}
+
+/* 검색 */
+.search-box {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 25px;
+}
+
+.search-box input {
+  flex: 1;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #ba9d65;
+  background: #111;
+  color: #ffeeca;
+  font-size: 15px;
+}
+
+.search-box button {
+  padding: 12px 20px;
+  background: #ba9d65;
+  border: none;
+  color: black;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.search-box button:hover {
+  background: #d9ba78;
+}
+
+/* 테이블 */
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.noble-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: #f7e7c3;
+}
+
+.noble-table th {
+  background: rgba(255, 220, 150, 0.18);
+  padding: 14px;
+  border-bottom: 2px solid rgba(255, 200, 130, 0.3);
+}
+
+.noble-table td {
+  padding: 12px;
+  border-bottom: 1px solid rgba(255, 200, 130, 0.15);
+}
+
+.noble-table tr:hover {
+  background: rgba(255, 220, 160, 0.08);
+}
+
+/* 돌아가기 */
+.back-btn {
+  display: inline-block;
+  margin-top: 25px;
+  font-size: 16px;
+  color: #f6dba1;
+  text-decoration: none;
+}
+
+.back-btn:hover {
+  text-decoration: underline;
+}
