@@ -96,3 +96,9 @@ h1{ margin:8px 0 18px; font-size:36px; letter-spacing:0.6px; }
 
 /* 카드 preview text fallback */
 .preview .note { margin-top:8px; color:#ddd; font-size:13px; }
+
+/* 금색 텍스트 */
+.gold {
+  color: #ffd27f !important;
+  font-weight: 700;
+}
