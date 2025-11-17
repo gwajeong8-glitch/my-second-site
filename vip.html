@@ -3,25 +3,104 @@
 <head>
   <meta charset="utf-8" />
   <title>Noblesse — VIP 선택</title>
-  <link rel="stylesheet" href="style.css" />
+
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --gold: #caa36a;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: var(--bg);
+      color: #fff;
+      font-family: "Inter", "Noto Sans KR", sans-serif;
+    }
+
+    h1 {
+      text-align: center;
+      padding: 32px 0;
+      font-size: 38px;
+      color: var(--gold);
+    }
+
+    /* VIP 리스트 영역 */
+    .vip-list {
+      width: 800px;
+      max-width: 94%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      padding-bottom: 40px;
+    }
+
+    /* VIP 버튼 스타일 */
+    .vip-button {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      width: 100%;
+      height: 70px;
+
+      background: linear-gradient(180deg, #00000070, #000000cc);
+      border: 2px solid rgba(202,163,106,0.8);
+      border-radius: 12px;
+
+      color: #fff;
+      text-decoration: none;
+      font-size: 20px;
+      font-weight: 700;
+      transition: .15s;
+
+      box-shadow:
+        0 8px 24px rgba(0,0,0,0.6),
+        0 0 14px rgba(202,163,106,0.1) inset;
+    }
+
+    .vip-button:hover {
+      transform: translateY(-4px);
+      border-color: #ffd58a;
+      box-shadow:
+        0 20px 36px rgba(0,0,0,0.7),
+        0 0 26px rgba(202,163,106,0.18) inset;
+    }
+
+    /* 모바일 대응 */
+    @media(max-width:600px){
+      .vip-button {
+        height: 62px;
+        font-size: 18px;
+      }
+    }
+  </style>
 </head>
+
 <body>
+
   <h1>VIP 선택</h1>
 
   <div class="vip-list" id="vipArea"></div>
 
-<script>
-  const url = new URL(location.href);
-  const menu = url.searchParams.get('menu') || '1';
-  const vipArea = document.getElementById('vipArea');
+  <script>
+    // 메뉴 번호 가져오기
+    const url = new URL(location.href);
+    const menu = url.searchParams.get('menu') || '1';
 
-  for (let v=1; v<=3; v++){
-    const a = document.createElement('a');
-    a.className = 'vip-button';
-    a.href = `card.html?menu=${menu}&vip=${v}`;
-    a.innerText = `VIP ${v} 카드 편집`;
-    vipArea.appendChild(a);
-  }
-</script>
+    // VIP 버튼 생성
+    const vipArea = document.getElementById('vipArea');
+
+    for (let v = 1; v <= 3; v++) {
+      const a = document.createElement('a');
+      a.className = 'vip-button';
+      a.href = `card.html?menu=${menu}&vip=${v}`;
+      a.innerText = `VIP ${v} 카드 편집`;
+      vipArea.appendChild(a);
+    }
+  </script>
+
 </body>
 </html>
