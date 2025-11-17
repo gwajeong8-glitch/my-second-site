@@ -3,22 +3,133 @@
 <head>
   <meta charset="utf-8" />
   <title>Noblesse - 메뉴 선택</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root{
+      --bg:#0b0b0b;
+      --gold: #caa36a;
+      --btn-w: 300px;
+      --btn-h: 70px;
+    }
+    html,body{height:100%;margin:0;background:var(--bg);color:#fff;font-family:Inter, "Noto Sans KR", sans-serif}
+    h1{text-align:center;padding:32px 0;color:var(--gold);font-size:36px;letter-spacing:1px}
+    .menu-list{width:980px;margin:0 auto;display:flex;flex-wrap:wrap;gap:22px;justify-content:center}
+    .menu-button{
+      display:inline-flex;align-items:center;justify-content:center;
+      width:var(--btn-w);height:var(--btn-h);
+      border-radius:12px;border:2px solid rgba(202,163,106,0.9);
+      background:linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.6));
+      box-shadow: 0 8px 30px rgba(0,0,0,0.6), 0 0 18px rgba(202,163,106,0.06) inset;
+      color: #fff;text-decoration:none;font-size:20px;font-weight:700;
+      transition: all .18s ease; cursor:pointer;
+    }
+    .menu-button:hover{
+      transform: translateY(-4px);
+      box-shadow: 0 18px 40px rgba(0,0,0,0.7), 0 0 30px rgba(202,163,106,0.18) inset;
+      border-color: #ffd586;
+    }
+
+    /* 모달(팝업) 기본 스타일 */
+    .popup{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:9999;
+            background: rgba(0,0,0,0.6); }
+    .popup.show{ display:flex; }
+    .popup-card{
+      width:720px; max-width:92%; border-radius:12px; background:#0f0f0f; padding:28px;
+      border: 3px solid rgba(202,163,106,0.95); box-shadow: 0 30px 80px rgba(0,0,0,0.8);
+      color:#fff;
+    }
+    .popup-card h2{ color:var(--gold); margin:0 0 12px 0 }
+    .popup-card p{ margin:10px 0 18px 0; line-height:1.6; color:#eee }
+    .popup-actions{ text-align:right }
+    .btn{ display:inline-block;padding:10px 16px;border-radius:8px;text-decoration:none;font-weight:700; }
+    .btn-close{ background:#222;color:#fff;border:1px solid #333;margin-right:8px }
+    .btn-primary{ background: linear-gradient(90deg,#ffdf9e,#ffc85f); color:#111; border: none; }
+
+    @media (max-width:740px){
+      .menu-button{ width:calc(50% - 28px); font-size:18px; height:64px }
+    }
+    @media (max-width:420px){
+      .menu-button{ width:100%; }
+    }
+  </style>
 </head>
 <body>
   <h1>Noblesse — 메뉴 선택</h1>
 
   <div class="menu-list" id="menuList"></div>
 
+  <!-- 메뉴2용 모달 -->
+  <div id="menu2-popup" class="popup" role="dialog" aria-hidden="true">
+    <div class="popup-card" role="document">
+      <h2>2번 메뉴 — 안내</h2>
+      <p>
+        여기에 2번 메뉴의 상세 내용이나 빠른 안내, 예약 폼, 설명 등을 넣어주세요.
+        (예: VIP 안내, 상담신청, 특별 이벤트 정보 등)
+      </p>
+      <div class="popup-actions">
+        <button class="btn btn-close" onclick="closeMenu2()">닫기</button>
+        <a class="btn btn-primary" href="menu2.html">자세히 보기</a>
+      </div>
+    </div>
+  </div>
+
 <script>
+  // 여기에 원하는 메뉴 이름을 넣어주세요 (인덱스는 0부터)
+  const menuNames = [
+    "VIP 1~3",      // 1번
+    "데이터",    // 2번 (모달로 열림)
+    "서비스 소개",    // 3번
+    "예약하기",      // 4번
+    "요금 안내",      // 5번
+    "갤러리",        // 6번
+    "고객 후기",      // 7번
+    "Q&A",           // 8번
+    "공지사항",      // 9번
+    "문의하기"       // 10번
+  ];
+
   const menuList = document.getElementById('menuList');
-  for (let i=1;i<=10;i++){
+
+  for (let i = 0; i < 10; i++){
+    const num = i+1;
     const a = document.createElement('a');
     a.className = 'menu-button';
-    a.href = `vip.html?menu=${i}`;
-    a.innerText = `${i}번 메뉴`;
+
+    // 2번 메뉴은 모달 열기 (원하면 링크로 바꿀 수 있음)
+    if (num === 2){
+      a.href = 'javascript:void(0)';
+      a.addEventListener('click', (e)=>{
+        openMenu2();
+      });
+      a.innerText = menuNames[i] || `${num}번 메뉴`;
+    } else {
+      // 다른 메뉴는 vip.html?menu=번호 로 이동
+      a.href = `vip.html?menu=${num}`;
+      a.innerText = menuNames[i] || `${num}번 메뉴`;
+    }
     menuList.appendChild(a);
   }
+
+  // 모달 열고 닫기 함수
+  const popup = document.getElementById('menu2-popup');
+  function openMenu2(){
+    popup.classList.add('show');
+    popup.setAttribute('aria-hidden','false');
+  }
+  function closeMenu2(){
+    popup.classList.remove('show');
+    popup.setAttribute('aria-hidden','true');
+  }
+
+  // ESC 누르면 닫기
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape') closeMenu2();
+  });
+
+  // 배경 클릭하면 닫기 (팝업 내부 클릭은 무시)
+  popup.addEventListener('click', (e)=>{
+    if(e.target === popup) closeMenu2();
+  });
 </script>
 </body>
 </html>
