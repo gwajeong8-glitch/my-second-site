@@ -1,19 +1,39 @@
-.vip-list {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  width: 300px;
-  margin: 40px auto;
+.card-page {
+  background: #121212;
+  color: white;
+  margin: 0;
+  font-family: "Inter", "Noto Sans KR", sans-serif;
 }
 
-.vip-select-btn {
-  padding: 16px 24px;
-  background: #1a1a1a;
-  border: 2px solid #caa36a;
+.card-editor-wrap {
+  display: flex;
+  gap: 30px;
+  padding: 40px;
+}
+
+#cardCanvas {
+  background: #000;
   border-radius: 10px;
+}
+
+.panel {
+  width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.panel input,
+.panel button {
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background: #1a1a1a;
   color: white;
-  text-decoration: none;
-  font-size: 20px;
-  font-weight: 600;
-  text-align: center;
+}
+
+.panel button {
+  background: #caa36a;
+  color: black;
+  cursor: pointer;
 }
