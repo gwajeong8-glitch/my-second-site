@@ -9,13 +9,11 @@
   <h1>카드 편집기</h1>
 
   <div class="container">
-    <!-- 미리보기 -->
     <div class="preview">
       <canvas id="cardCanvas" aria-label="카드 미리보기"></canvas>
       <div class="note">실시간 미리보기 — 저장 후 다운로드하세요.</div>
     </div>
 
-    <!-- 컨트롤 패널 -->
     <div class="panel">
       <div id="context" style="font-weight:800; margin-bottom:8px;">메뉴 - VIP</div>
 
@@ -34,20 +32,28 @@
       <label>텍스트 색상</label>
       <input id="colorText" type="color" value="#F6EAD2">
 
+      <hr>
+
+      <label>ID X</label>
+      <input id="idX" type="number" value="380">
+
+      <label>ID Y</label>
+      <input id="idY" type="number" value="660">
+
+      <label>NO X</label>
+      <input id="noX" type="number" value="380">
+
+      <label>NO Y</label>
+      <input id="noY" type="number" value="710">
+
       <div class="row">
         <button class="btn save" id="btnSave">메뉴별 저장</button>
         <button class="btn download" id="btnDownload">PNG 다운로드</button>
-      </div>
-
-      <div style="margin-top:12px; font-size:13px; color:#ddd;">
-        저장 = 브라우저 localStorage (기기별 저장).<br>
-        메뉴에서 이 페이지로 올 때 URL에 <code>?menu=n&vip=m</code> 가 있어야 구분 저장됩니다.
       </div>
     </div>
   </div>
 
 <script>
-/* ---------- 헬퍼 ---------- */
 function qp(name){
   return new URL(location.href).searchParams.get(name);
 }
@@ -55,121 +61,108 @@ const menuNum = qp('menu') || '1';
 const vipNum = qp('vip') || '1';
 document.getElementById('context').innerText = `메뉴 ${menuNum} · VIP ${vipNum}`;
 
-/* ---------- 요소 ---------- */
 const canvas = document.getElementById('cardCanvas');
 const ctx = canvas.getContext('2d');
+
 const inputID = document.getElementById('inputID');
 const inputCard = document.getElementById('inputCard');
 const sizeName = document.getElementById('sizeName');
 const sizeNo = document.getElementById('sizeNo');
 const colorText = document.getElementById('colorText');
+
+const idX = document.getElementById('idX');
+const idY = document.getElementById('idY');
+const noX = document.getElementById('noX');
+const noY = document.getElementById('noY');
+
 const btnSave = document.getElementById('btnSave');
 const btnDownload = document.getElementById('btnDownload');
 
-/* 이미지 경로 */
 const imgSrc = `img/vip${vipNum}.png`;
 const baseImg = new Image();
 baseImg.src = imgSrc;
 baseImg.crossOrigin = "anonymous";
 
-/* 기본 캔버스 사이즈 */
-const DEFAULT = { w:1024, h:1024 };
-canvas.width = DEFAULT.w;
-canvas.height = DEFAULT.h;
+canvas.width = 1024;
+canvas.height = 1024;
 
-/* 로드 시 저장값 불러오기 */
 const storageKey = (menu, vip) => `noblesse_menu${menu}_vip${vip}`;
+
 (function loadSaved(){
   const raw = localStorage.getItem(storageKey(menuNum, vipNum));
-  if (raw){
-    try {
-      const obj = JSON.parse(raw);
+  if (!raw) return;
 
-      // 저장된 값 불러오되 ID:, CARD NO: 자동으로 붙여줌
-      inputID.value = obj.id ? `ID: ${obj.id.replace(/^ID:\s*/,'')}` : "ID: 홍길동";
-      inputCard.value = obj.card ? `CARD NO: ${obj.card.replace(/^CARD NO:\s*/,'')}` : "CARD NO: 0000000000";
+  try {
+    const o = JSON.parse(raw);
+    inputID.value = o.id || inputID.value;
+    inputCard.value = o.card || inputCard.value;
+    sizeName.value = o.sizeName || sizeName.value;
+    sizeNo.value = o.sizeNo || sizeNo.value;
+    colorText.value = o.color || colorText.value;
 
-      if (obj.sizeName) sizeName.value = obj.sizeName;
-      if (obj.sizeNo) sizeNo.value = obj.sizeNo;
-      if (obj.color) colorText.value = obj.color;
-    } catch(e){ console.warn(e); }
-  }
+    idX.value = o.idX || idX.value;
+    idY.value = o.idY || idY.value;
+    noX.value = o.noX || noX.value;
+    noY.value = o.noY || noY.value;
+  } catch(e){}
 })();
 
-/* 렌더 함수 */
 function render(){
-  // 캔버스 리사이즈
-  if (baseImg && baseImg.naturalWidth){
+  if (baseImg.complete && baseImg.naturalWidth){
     canvas.width = baseImg.naturalWidth;
     canvas.height = baseImg.naturalHeight;
   }
 
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  if (baseImg.complete && baseImg.naturalWidth){
+  if (baseImg.complete){
     ctx.drawImage(baseImg, 0, 0, canvas.width, canvas.height);
   }
 
-  // 텍스트 값
-  const idText = inputID.value || "ID: 홍길동";
-  const cardText = inputCard.value || "CARD NO: 0000000000";
-
-  const padX = Math.round(canvas.width * 0.38);
-  const baseY = Math.round(canvas.height * 0.58);
-
-  const nameSize = parseInt(sizeName.value) || 20;
-  const noSize = parseInt(sizeNo.value) || 20;
-  const txtColor = colorText.value || "#F6EAD2";
+  const nameSize = parseInt(sizeName.value);
+  const noSize = parseInt(sizeNo.value);
+  const txtColor = colorText.value;
 
   ctx.shadowColor = "rgba(0,0,0,0.6)";
   ctx.shadowBlur = 6;
 
-  /* 이름 */
   ctx.fillStyle = txtColor;
+
   ctx.font = `${nameSize}px sans-serif`;
-  ctx.fillText(idText, padX, baseY + 70);
+  ctx.fillText(inputID.value, parseInt(idX.value), parseInt(idY.value));
 
-  /* 번호 */
   ctx.font = `${noSize}px sans-serif`;
-  ctx.fillText(cardText, padX, baseY + 92);
-
-  ctx.lineWidth = Math.max(1, Math.round(noSize * 0.06));
-  ctx.strokeStyle = "rgba(0,0,0,0.45)";
+  ctx.fillText(inputCard.value, parseInt(noX.value), parseInt(noY.value));
 }
 
-/* 이벤트 → 즉시 렌더 */
-[inputID, inputCard, sizeName, sizeNo, colorText].forEach(el=>{
-  el.addEventListener('input', render);
-});
+[inputID, inputCard, sizeName, sizeNo, colorText, idX, idY, noX, noY]
+  .forEach(el => el.addEventListener('input', render));
 
-/* 이미지 로드 후 렌더 */
 baseImg.onload = render;
 
-/* 저장 */
 btnSave.addEventListener('click', ()=>{
   const data = {
     id: inputID.value,
     card: inputCard.value,
     sizeName: sizeName.value,
     sizeNo: sizeNo.value,
-    color: colorText.value
+    color: colorText.value,
+    idX: idX.value,
+    idY: idY.value,
+    noX: noX.value,
+    noY: noY.value
   };
   localStorage.setItem(storageKey(menuNum, vipNum), JSON.stringify(data));
-  alert('저장되었습니다.');
+  alert("저장되었습니다.");
 });
 
-/* 다운로드 */
 btnDownload.addEventListener('click', ()=>{
   render();
-  canvas.toBlob(function(blob){
+  canvas.toBlob(blob=>{
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    const safeName = (inputID.value || 'user').replace(/[^\w\-]/g,'_');
-    link.download = `menu${menuNum}_vip${vipNum}_${safeName}.png`;
-    document.body.appendChild(link);
+    link.download = `menu${menuNum}_vip${vipNum}.png`;
     link.click();
-    link.remove();
-    URL.revokeObjectURL(link.href);
-  }, 'image/png');
+  });
 });
 
 setTimeout(render, 300);
