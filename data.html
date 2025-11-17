@@ -1,42 +1,107 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
 <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Noblesse Data Center</title>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="stylesheet" href="data.css" />
+<link rel="stylesheet" href="data.css">
 </head>
 <body class="data-page">
+  <div class="sidebar">
+    <h2>메인 메뉴</h2>
+    <div class="menu-item" onclick="loadRealtimeData()">실시간 데이터</div>
+    <div class="menu-item">매칭/고객 상태</div>
+    <div class="menu-item">주문 상태</div>
+    <div class="menu-item">상담 / 문의</div>
+    <div class="menu-item">전국 만남</div>
+    <div class="menu-item">인증 관리</div>
+    <div class="menu-item">회원 관리</div>
+  </div>
 
-  <div class="container">
-    <h1>실시간 데이터 대시보드</h1>
-
-    <p class="subtitle">아래 카드들을 클릭하면 카드 편집기로 이동합니다.</p>
-
-    <div class="card-grid" id="cardGrid"></div>
+  <div class="content" id="contentArea">
+    <h1>실시간 데이터 현황</h1>
+    <p class="subtitle">아래 표의 데이터(포인트 금액·환불 금액·상태·서비스 등)는 클릭 후 직접 수정 가능합니다. 수정 즉시 자동 저장됩니다.</p>
   </div>
 
 <script>
-  // 대시보드용 카드 데이터 (미리보기)
-  const cards = [
-    { id:1, title:"VIP 1", sub:"120,000 · 정상", img:"vip1.png" },
-    { id:2, title:"VIP 2", sub:"230,000 · 정상", img:"vip2.png" },
-    { id:3, title:"VIP 3", sub:"570,000 · 정상", img:"vip3.png" },
-    { id:4, title:"VIP 1 (예비)", sub:"730,000 · 정상", img:"vip1.png" }
-  ];
+const storageKey = 'noblesse_realtime_v1';
+const defaultData = [
+  ['1','선택 가능','120,000','250,500','100%','정상','매진'],
+  ['2','선택 가능','230,000','276,000','100%','정상','매진'],
+  ['3','선택 가능','570,000','584,000','100%','정상','매진'],
+  ['4','선택 가능','730,000','876,000','100%','정상','매진'],
+];
 
-  const container = document.getElementById('cardGrid');
-  cards.forEach(c=>{
-    const a = document.createElement('a');
-    a.href = `card.html?vip=${c.id<=3?c.id:1}`;
-    a.className = 'card';
-    a.innerHTML = `
-      <div style="height:180px; background-image:url('${c.img}'); background-size:cover; background-position:center; border-radius:8px;"></div>
-      <div style="padding-top:12px;"><div class="card-title">${c.title}</div><div class="card-desc">${c.sub}</div></div>
-    `;
-    container.appendChild(a);
+function getSaved(){
+  const raw = localStorage.getItem(storageKey);
+  if(!raw) return defaultData;
+  try { return JSON.parse(raw); } catch(e){ return defaultData; }
+}
+
+function saveData(arr){
+  localStorage.setItem(storageKey, JSON.stringify(arr));
+}
+
+function loadRealtimeData(){
+  const content = document.getElementById('contentArea');
+  const data = getSaved();
+
+  let html = `
+    <h1>실시간 데이터 현황</h1>
+    <p class="subtitle">아래 표의 데이터 값(포인트 금액·환불 금액·상태·서비스 등)은 클릭 후 직접 수정할 수 있으며 수정 즉시 자동 저장됩니다.</p>
+    <div class="data-box">
+      <table id="realtimeTable">
+        <thead>
+          <tr>
+            <th>번호</th><th>선택 유형</th><th>포인트 금액</th><th>환불 금액</th>
+            <th>정확도</th><th>데이터 상태</th><th>서비스</th>
+          </tr>
+        </thead><tbody>
+  `;
+  data.forEach((row,i)=>{
+    html += '<tr>' + row.map(cell => `<td>${escapeHtml(cell)}</td>`).join('') + '</tr>';
   });
-</script>
+  html += `</tbody></table></div>`;
+  content.innerHTML = html;
 
+  // attach editing handlers
+  document.querySelectorAll('#realtimeTable tbody td').forEach(td=>{
+    td.addEventListener('click', ()=>{
+      if(td.classList.contains('editing')) return;
+      const original = td.innerText;
+      td.classList.add('editing');
+      const input = document.createElement('input');
+      input.type='text';
+      input.value = original;
+      input.style.width='95%';
+      td.innerHTML = '';
+      td.appendChild(input);
+      input.focus();
+
+      const finish = ()=>{
+        td.classList.remove('editing');
+        td.innerText = input.value;
+        persistTable();
+      };
+      input.addEventListener('blur', finish);
+      input.addEventListener('keydown', (e)=>{ if(e.key==='Enter') finish(); });
+    });
+  });
+
+  function persistTable(){
+    const rows = [...document.querySelectorAll('#realtimeTable tbody tr')];
+    const arr = rows.map(r => [...r.querySelectorAll('td')].map(c => c.innerText));
+    saveData(arr);
+  }
+}
+
+// basic helper
+function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+window.addEventListener('load', ()=>{
+  // show data by default
+  loadRealtimeData();
+});
+</script>
 </body>
 </html>
