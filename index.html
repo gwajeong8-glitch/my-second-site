@@ -1,171 +1,136 @@
-<!--
-Rebuilt full working version based on our entire conversation.
-Single-page system with Menu1 (VIP Card Maker) and Menu2 (Data Maker).
-Designed specifically for GitHub Pages structure.
-Index.html compatible.
-All paths relative.
-No external folders required except /img.
--->
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>VIP Card & Data Maker</title>
-<style>
-    body {
-        margin: 0;
-        background: #111;
-        color: #fff;
-        font-family: Arial, sans-serif;
-    }
-    header {
-        background: #222;
-        padding: 20px;
-        text-align: center;
-        font-size: 24px;
-        font-weight: bold;
-    }
-    nav {
-        display: flex;
-        justify-content: center;
-        gap: 20px;
-        background: #000;
-        padding: 15px 0;
-    }
-    nav button {
-        padding: 10px 20px;
-        font-size: 16px;
-        cursor: pointer;
-        background: #444;
-        color: #fff;
-        border: none;
-        border-radius: 5px;
-    }
-    nav button.active {
-        background: #e91e63;
-    }
-    section {
-        display: none;
-        padding: 20px;
-    }
-    section.active {
-        display: block;
-    }
+    <meta charset="UTF-8">
+    <title>VIP CARD</title>
 
-    /* 카드 미리보기 */
-    .card-preview {
-        width: 350px;
-        height: 550px;
-        background-size: cover;
-        background-position: center;
-        border-radius: 10px;
-        position: relative;
-        margin-top: 20px;
-    }
-    .card-text {
-        position: absolute;
-        left: 20px;
-        color: #fff;
-        font-weight: bold;
-        text-shadow: 2px 2px 4px #000;
-    }
-    .id { top: 350px; font-size: 20px; }
-    .no { top: 385px; font-size: 18px; }
-    .date { top: 420px; font-size: 18px; }
+    <style>
+        body {
+            background: #111;
+            font-family: 'Nanum Gothic', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #FFF8DC; /* 아이보리 */
+            gap: 40px;
+        }
 
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
-    }
-    table, th, td {
-        border: 1px solid #555;
-    }
-    th, td {
-        padding: 10px;
-        text-align: left;
-    }
-</style>
+        .card-container {
+            position: relative;
+            width: 700px;
+            height: 450px;
+        }
+
+        .card-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            border-radius: 10px;
+        }
+
+        .card-text {
+            position: absolute;
+            left: 40px;
+            bottom: 40px;
+            font-size: 23px;
+            color: #FFF8DC;
+            font-weight: bold;
+            line-height: 1.6;
+            text-shadow: 0 0 5px black;
+        }
+
+        .controls input, .controls select, .controls button {
+            width: 200px;
+            margin-bottom: 10px;
+            padding: 6px 10px;
+            font-size: 15px;
+        }
+
+        button {
+            background: #d4b98b;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
 </head>
+
 <body>
-<header>VIP CARD & DATA MAKER</header>
 
-<nav>
-    <button id="btn1" class="active" onclick="showMenu(1)">메뉴 1 — VIP 카드 제작</button>
-    <button id="btn2" onclick="showMenu(2)">메뉴 2 — 데이터 제작기</button>
-</nav>
+<!-- 카드 화면 -->
+<div id="cardCapture" class="card-container">
+    <div id="cardBg" class="card-bg" style="background-image: url('img/vip1.png');"></div>
 
-<!-- 메뉴 1: VIP 카드 제작기 -->
-<section id="menu1" class="active">
-    <h2>VIP 카드 제작기</h2>
+    <div class="card-text">
+        <div id="idText">ID: 홍길동</div>
+        <div id="cardNoText">CARD NO: 0000000000</div>
+    </div>
+</div>
 
-    <label>카드 배경 선택:</label>
-    <select id="bgSelector" onchange="updateCard()">
+<!-- UI 영역 -->
+<div class="controls">
+
+    <label>VIP 선택</label>
+    <select id="vipSelect">
         <option value="img/vip1.png">VIP 1</option>
         <option value="img/vip2.png">VIP 2</option>
         <option value="img/vip3.png">VIP 3</option>
-    </select><br><br>
+    </select>
 
-    <label>ID 입력:</label><br>
-    <input type="text" id="idInput" oninput="updateCard()"><br><br>
+    <label>ID:</label>
+    <input type="text" id="idInput" value="홍길동">
 
-    <label>CARD NO 입력:</label><br>
-    <input type="text" id="noInput" oninput="updateCard()"><br><br>
+    <label>CARD NO:</label>
+    <input type="text" id="cardNoInput" value="0000000000">
 
-    <label>DATE 입력:</label><br>
-    <input type="text" id="dateInput" oninput="updateCard()"><br><br>
+    <button id="downloadBtn">PNG 다운로드</button>
+</div>
 
-    <div id="preview" class="card-preview" style="background-image: url('img/vip1.png');">
-        <div class="card-text id" id="prevID"></div>
-        <div class="card-text no" id="prevNO"></div>
-        <div class="card-text date" id="prevDATE"></div>
-    </div>
-</section>
-
-
-<!-- 메뉴 2: 데이터 제작기 -->
-<section id="menu2">
-    <h2>데이터 제작기</h2>
-
-    <p>여기에 들어가야 했던 문구 + 표 완전한 기본 템플릿 복원:</p>
-
-    <table>
-        <tr>
-            <th>번호</th>
-            <th>ID</th>
-            <th>CARD NO</th>
-            <th>DATE</th>
-        </tr>
-        <tr>
-            <td>1</td>
-            <td>예시아이디</td>
-            <td>0000-0000</td>
-            <td>2025-01-01</td>
-        </tr>
-    </table>
-</section>
+<!-- html2canvas -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <script>
-function showMenu(menu) {
-    document.getElementById('menu1').classList.remove('active');
-    document.getElementById('menu2').classList.remove('active');
-    document.getElementById('btn1').classList.remove('active');
-    document.getElementById('btn2').classList.remove('active');
+    const vipSelect = document.getElementById("vipSelect");
+    const cardBg = document.getElementById("cardBg");
 
-    document.getElementById('menu' + menu).classList.add('active');
-    document.getElementById('btn' + menu).classList.add('active');
-}
+    const idInput = document.getElementById("idInput");
+    const idText = document.getElementById("idText");
 
-function updateCard() {
-    document.getElementById('preview').style.backgroundImage =
-        `url('${document.getElementById('bgSelector').value}')`;
+    const cardNoInput = document.getElementById("cardNoInput");
+    const cardNoText = document.getElementById("cardNoText");
 
-    document.getElementById('prevID').innerText = 'ID : ' + (idInput.value || '');
-    document.getElementById('prevNO').innerText = 'NO : ' + (noInput.value || '');
-    document.getElementById('prevDATE').innerText = 'DATE : ' + (dateInput.value || '');
-}
+    const downloadBtn = document.getElementById("downloadBtn");
+
+    // VIP 배경 자동 변경
+    vipSelect.addEventListener("change", () => {
+        cardBg.style.backgroundImage = `url('${vipSelect.value}')`;
+    });
+
+    // ID 변경
+    idInput.addEventListener("input", () => {
+        idText.innerText = "ID: " + idInput.value;
+    });
+
+    // 카드번호 변경
+    cardNoInput.addEventListener("input", () => {
+        cardNoText.innerText = "CARD NO: " + cardNoInput.value;
+    });
+
+    // PNG 저장
+    downloadBtn.addEventListener("click", () => {
+        html2canvas(document.getElementById("cardCapture")).then(canvas => {
+            const link = document.createElement("a");
+            link.download = "VIP_CARD.png";
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+    });
 </script>
+
 </body>
 </html>
