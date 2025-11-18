@@ -1,92 +1,90 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>VIP CARD</title>
+<meta charset="UTF-8">
+<title>VIP CARD MAKER</title>
 
-    <style>
-        body {
-            background: #111;
-            font-family: 'Nanum Gothic', sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            color: #FFF8DC; /* 아이보리 */
-            gap: 40px;
-        }
+<style>
+    body {
+        background: #111;
+        padding: 30px;
+        color: #EEE8D5;
+        font-family: sans-serif;
+        display: flex;
+        gap: 30px;
+    }
 
-        .card-container {
-            position: relative;
-            width: 700px;
-            height: 450px;
-        }
+    /* 카드 영역 */
+    #cardArea {
+        width: 700px;
+        height: 450px;
+        background-size: cover;
+        background-position: center;
+        border-radius: 10px;
+        position: relative;
+        overflow: hidden;
+    }
 
-        .card-bg {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background-size: cover;
-            background-position: center;
-            border-radius: 10px;
-        }
+    /* ID 텍스트 */
+    #idText {
+        position: absolute;
+        color: #FFF8DC;       /* 아이보리 */
+        font-size: 23px;
+        font-weight: bold;
+        left: 40px;           /* ← 여기 숫자만 바꾸면 위치 변경 */
+        top: 330px;           /* ← 여기 */
+    }
 
-        .card-text {
-            position: absolute;
-            left: 40px;
-            bottom: 40px;
-            font-size: 23px;
-            color: #FFF8DC;
-            font-weight: bold;
-            line-height: 1.6;
-            text-shadow: 0 0 5px black;
-        }
+    /* CARD NO 텍스트 */
+    #cardNoText {
+        position: absolute;
+        color: #FFF8DC;
+        font-size: 23px;
+        font-weight: bold;
+        left: 40px;           /* ← 여기 */
+        top: 370px;           /* ← 여기 */
+    }
 
-        .controls input, .controls select, .controls button {
-            width: 200px;
-            margin-bottom: 10px;
-            padding: 6px 10px;
-            font-size: 15px;
-        }
+    #controls input,
+    #controls select,
+    #controls button {
+        margin-bottom: 10px;
+        padding: 7px;
+        width: 220px;
+    }
 
-        button {
-            background: #d4b98b;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-        }
-    </style>
+    button {
+        background: #d4b98b;
+        border: none;
+        cursor: pointer;
+        font-weight: bold;
+    }
+</style>
 </head>
 
 <body>
 
-<!-- 카드 화면 -->
-<div id="cardCapture" class="card-container">
-    <div id="cardBg" class="card-bg" style="background-image: url('img/vip1.png');"></div>
-
-    <div class="card-text">
-        <div id="idText">ID: 홍길동</div>
-        <div id="cardNoText">CARD NO: 0000000000</div>
-    </div>
+<!-- 카드 배경 -->
+<div id="cardArea" style="background-image: url('img/vip1.png');">
+    <div id="idText">ID: 홍길동</div>
+    <div id="cardNoText">CARD NO: 0000000000</div>
 </div>
 
-<!-- UI 영역 -->
-<div class="controls">
+<!-- 설정 패널 -->
+<div id="controls">
 
-    <label>VIP 선택</label>
+    <label>VIP 선택</label><br>
     <select id="vipSelect">
         <option value="img/vip1.png">VIP 1</option>
         <option value="img/vip2.png">VIP 2</option>
         <option value="img/vip3.png">VIP 3</option>
-    </select>
+    </select><br>
 
-    <label>ID:</label>
-    <input type="text" id="idInput" value="홍길동">
+    <label>ID</label><br>
+    <input id="idInput" type="text" value="홍길동"><br>
 
-    <label>CARD NO:</label>
-    <input type="text" id="cardNoInput" value="0000000000">
+    <label>CARD NO</label><br>
+    <input id="cardNoInput" type="text" value="0000000000"><br>
 
     <button id="downloadBtn">PNG 다운로드</button>
 </div>
@@ -95,37 +93,28 @@
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <script>
-    const vipSelect = document.getElementById("vipSelect");
-    const cardBg = document.getElementById("cardBg");
-
-    const idInput = document.getElementById("idInput");
     const idText = document.getElementById("idText");
-
-    const cardNoInput = document.getElementById("cardNoInput");
     const cardNoText = document.getElementById("cardNoText");
 
-    const downloadBtn = document.getElementById("downloadBtn");
-
-    // VIP 배경 자동 변경
-    vipSelect.addEventListener("change", () => {
-        cardBg.style.backgroundImage = `url('${vipSelect.value}')`;
+    /* 텍스트 입력 변경 */
+    document.getElementById("idInput").addEventListener("input", e => {
+        idText.textContent = "ID: " + e.target.value;
     });
 
-    // ID 변경
-    idInput.addEventListener("input", () => {
-        idText.innerText = "ID: " + idInput.value;
+    document.getElementById("cardNoInput").addEventListener("input", e => {
+        cardNoText.textContent = "CARD NO: " + e.target.value;
     });
 
-    // 카드번호 변경
-    cardNoInput.addEventListener("input", () => {
-        cardNoText.innerText = "CARD NO: " + cardNoInput.value;
+    /* VIP 배경 변경 */
+    document.getElementById("vipSelect").addEventListener("change", e => {
+        document.getElementById("cardArea").style.backgroundImage = `url('${e.target.value}')`;
     });
 
-    // PNG 저장
-    downloadBtn.addEventListener("click", () => {
-        html2canvas(document.getElementById("cardCapture")).then(canvas => {
+    /* PNG 저장 */
+    document.getElementById("downloadBtn").addEventListener("click", () => {
+        html2canvas(document.getElementById("cardArea")).then(canvas => {
             const link = document.createElement("a");
-            link.download = "VIP_CARD.png";
+            link.download = "vip_card.png";
             link.href = canvas.toDataURL();
             link.click();
         });
