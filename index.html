@@ -2,20 +2,73 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>VIP CARD MAKER</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Noblesse Integrated System</title>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <style>
+    /* --- [공통 레이아웃] --- */
     body {
-        background: #111;
-        padding: 30px;
-        color: #EEE8D5;
-        font-family: sans-serif;
-        display: flex;
-        gap: 30px;
+        margin: 0;
+        padding: 0;
+        background-color: #000;
+        font-family: "Nanum Myeongjo", "Arial", sans-serif;
+        color: white;
     }
 
-    /* 카드 영역 */
-    #cardArea {
+    /* 상단 메인 네비게이션 탭 */
+    .main-nav {
+        display: flex;
+        justify-content: center;
+        background: #1a1a1a;
+        padding: 15px 0;
+        border-bottom: 2px solid #d4b98b;
+        margin-bottom: 20px;
+    }
+
+    .nav-btn {
+        background: transparent;
+        border: 1px solid #d4b98b;
+        color: #d4b98b;
+        padding: 10px 25px;
+        margin: 0 10px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        border-radius: 5px;
+        transition: all 0.3s;
+    }
+
+    .nav-btn:hover, .nav-btn.active {
+        background: #d4b98b;
+        color: #000;
+    }
+
+    /* 섹션 컨테이너 */
+    .section-container {
+        display: none; /* 기본적으로 숨김 */
+        width: 100%;
+        min-height: 80vh;
+    }
+    .section-container.active {
+        display: block; /* 활성화된 섹션만 보임 */
+    }
+
+    /* -------------------------------------------------------
+       [SECTION 1] VIP CARD MAKER 스타일
+    ------------------------------------------------------- */
+    #section-vip {
+        display: none; /* Flex로 켜야해서 JS로 제어 */
+        justify-content: center;
+        gap: 30px;
+        padding: 20px;
+        color: #EEE8D5;
+    }
+    #section-vip.active {
+        display: flex;
+    }
+
+    #section-vip .card-area {
         width: 700px;
         height: 450px;
         background-size: cover;
@@ -23,145 +76,441 @@
         border-radius: 10px;
         position: relative;
         overflow: hidden;
+        border: 1px solid #333;
     }
 
-    /* ID 텍스트 */
-    #idText {
-        position: absolute;
-        color: #FFFDD0;       /* 아이보리 */
-        font-size: 23px;
-        font-weight: bold;
-        left: 310px;           /* ← 여기 숫자만 바꾸면 위치 변경 */
-        top: 365px;           /* ← 여기 */
-    }
-
-    /* CARD NO 텍스트 */
-    #cardNoText {
+    #section-vip .id-text {
         position: absolute;
         color: #FFFDD0;
         font-size: 23px;
         font-weight: bold;
-        left: 310px;           /* ← 여기 */
-        top: 390px;           /* ← 여기 */
+        left: 310px;
+        top: 365px;
     }
 
-    #controls input,
-    #controls select,
-    #controls button {
+    #section-vip .card-no-text {
+        position: absolute;
+        color: #FFFDD0;
+        font-size: 23px;
+        font-weight: bold;
+        left: 310px;
+        top: 390px;
+    }
+
+    #section-vip .controls {
+        background: #222;
+        padding: 20px;
+        border-radius: 10px;
+        height: fit-content;
+    }
+
+    #section-vip input, #section-vip select, #section-vip button {
         margin-bottom: 10px;
         padding: 7px;
         width: 220px;
+        display: block;
     }
 
-    button {
+    #section-vip button {
         background: #d4b98b;
         border: none;
         cursor: pointer;
         font-weight: bold;
-    }
-    
-    /* 저장 버튼용 스타일 추가 */
-    #saveContentBtn {
-        background: #8bd4be; /* 구분되게 색상 변경 */
         color: #000;
     }
+    #section-vip .save-btn { background: #8bd4be; }
+
+
+    /* -------------------------------------------------------
+       [SECTION 2] 데이터 센터 스타일 (CSS 격리)
+    ------------------------------------------------------- */
+    #section-data .wrap {
+        width: 1024px;
+        height: 490px;
+        margin: 0 auto;
+        position: relative;
+        background-image: url('vip.png');
+        background-size: cover;
+        background-position: center;
+        background-color: #000;
+        overflow: hidden;
+    }
+    /* 공통 클래스 충돌 방지를 위해 #section-data 하위로 한정 */
+    #section-data .top-menu { position: absolute; top: 50px; left: 190px; display: flex; gap: 20px; z-index: 5; }
+    #section-data .menu { background: rgba(160,160,160,0.3); padding: 8px 15px; border-radius: 5px; font-size: 14px; }
+    #section-data .title { position: absolute; top: 125px; width: 100%; text-align: center; font-size: 28px; font-weight: 700; z-index: 5; }
+    #section-data .subtitle { position: absolute; top: 95px; width: 100%; text-align: center; font-size: 14px; color: #ffcc66; z-index: 5; }
+    #section-data .left-menu { position: absolute; left: 50px; top: 120px; width: 115px; line-height: 16px; font-size: 13px; z-index: 5; }
+    #section-data .left-item { padding: 1px 0; cursor: pointer; transition: 0.15s; }
+    #section-data .left-item.active { color: #ffdd66; font-weight: 700; text-shadow: 0 0 6px #ffdd66; }
+    
+    #section-data .data-table {
+        position: absolute; top: 170px; left: 159px; width: 802px;
+        border-collapse: collapse; font-size: 13px; z-index: 4;
+        box-shadow: 0 2px 0 rgba(0,0,0,0.35);
+    }
+    #section-data .data-table td, #section-data .data-table th {
+        background: #1B5E20; color: #C8F7DC; padding: 8px; height: 25px; text-align: center; border: 1px solid rgba(255,255,255,0.15); white-space: nowrap;
+    }
+    #section-data .data-table thead th { background: #2196F3; color: #fff; }
+    #section-data .notice { position: absolute; bottom: 30px; width: 100%; text-align: center; font-size: 11px; color: #ffcc66; z-index: 5; }
+
+
+    /* -------------------------------------------------------
+       [SECTION 3] 그룹 데이터 현황 (편집형) 스타일
+    ------------------------------------------------------- */
+    /* CSS 변수 스코핑 */
+    #section-group {
+        --table-header-bg: #2196F3;
+        --table-header-text: #ffffff;
+        --table-row-bg: #1B5E20;
+        --table-row-text: #C8F7DC;
+        --table-border: rgba(255,255,255,0.15);
+        --yellow-bg: #FFE082;
+        --dark-text: #1A1A1A;
+        --red-highlight: #FF0000;
+    }
+
+    #section-group .wrap {
+        width: 1024px; height: 490px; margin: 20px auto; position: relative;
+        background: url('vip.png') no-repeat center 0px; background-size: cover;
+        background-color: #000; overflow: hidden;
+    }
+
+    #section-group .top-menu { position: absolute; top: 50px; left: 190px; display: flex; gap: 20px; z-index: 5; }
+    #section-group .menu { background: rgba(160,160,160,0.3); padding: 8px 15px; border-radius: 5px; font-size: 14px; }
+    
+    #section-group .left-menu { position: absolute; left: 50px; top: 120px; width: 115px; line-height: 16px; font-size: 13px; z-index: 5; }
+    #section-group .left-item { padding: 1px 0; cursor: pointer; transition: 0.15s; }
+    #section-group .left-item.active { color: #ffdd66; font-weight: 700; text-shadow: 0 0 6px #ffdd66; }
+
+    #section-group .data-table {
+        position: absolute; top: 100px; left: 155px; width: 730px;
+        border-collapse: collapse; font-size: 8px; z-index: 4;
+        box-shadow: 0 2px 0 rgba(0,0,0,0.35);
+    }
+    
+    #section-group .data-table td {
+        background: var(--table-row-bg); color: var(--table-row-text);
+        padding: 2px 2px; height: 16px; text-align: center;
+        border: 1px solid var(--table-border); white-space: nowrap;
+        position: relative;
+    }
+    
+    #section-group .top-notice-row td { background: #FFD700; color: var(--dark-text); text-align: left; padding: 1px 4px; font-weight: 700; }
+    #section-group .top-data-header td { background: var(--table-header-bg); color: var(--table-header-text); font-weight: 700; height: 15px; width: 20%; }
+    #section-group .middle-title-row td { background: var(--yellow-bg); color: var(--dark-text); font-size: 12px; font-weight: 900; padding: 6px 4px; }
+    #section-group .middle-notice-row td { background: var(--yellow-bg); color: var(--dark-text); text-align: left; padding: 4px 6px; white-space: normal; }
+    
+    #section-group .bottom-data-header td { background: var(--table-header-bg); color: var(--table-header-text); font-weight: 700; height: 36px; font-size: 14px; padding: 4px; width: 20%; }
+    #section-group .bottom-data-row td { font-weight: 700; height: 32px; font-size: 14px; padding: 4px; }
+    
+    #section-group .red-text { color: var(--red-highlight); }
+    
+    /* 설정 패널 */
+    .setting-panel {
+        position: absolute; top: 10px; right: 10px; width: 240px;
+        padding: 15px; background: rgba(0,0,0,0.8); border: 1px solid #555;
+        border-radius: 8px; z-index: 100; font-size: 12px; color: white;
+    }
+    .color-palette { display: flex; flex-wrap: wrap; gap: 4px; margin: 10px 0; }
+    .color-swatch { width: 20px; height: 20px; border: 1px solid #fff; cursor: pointer; }
+
+    .resizer-display { position: fixed; background: white; color: black; padding: 5px; z-index: 200; display: none; }
 </style>
 </head>
-
 <body>
 
-<!-- 카드 배경 -->
-<div id="cardArea" style="background-image: url('vip1.png');">
-    <div id="idText">ID: 홍길동</div>
-    <div id="cardNoText">CARD NO: 0000000000</div>
+<!-- 메인 네비게이션 -->
+<nav class="main-nav">
+    <button class="nav-btn active" onclick="showSection('section-vip')">VIP Card Maker</button>
+    <button class="nav-btn" onclick="showSection('section-data')">데이터 센터</button>
+    <button class="nav-btn" onclick="showSection('section-group')">그룹 데이터 현황</button>
+</nav>
+
+<!-- ========================================== -->
+<!-- [SECTION 1] VIP CARD MAKER -->
+<!-- ========================================== -->
+<div id="section-vip" class="section-container active">
+    <!-- 카드 배경 -->
+    <div class="card-area" id="vip-cardArea" style="background-image: url('img/vip1.png');">
+        <div class="id-text" id="vip-idText">ID: 홍길동</div>
+        <div class="card-no-text" id="vip-cardNoText">CARD NO: 0000000000</div>
+    </div>
+
+    <!-- 설정 패널 -->
+    <div class="controls">
+        <label>VIP 선택</label>
+        <select id="vip-select">
+            <option value="img/vip1.png">VIP 1</option>
+            <option value="img/vip2.png">VIP 2</option>
+            <option value="img/vip3.png">VIP 3</option>
+        </select>
+
+        <label>ID</label>
+        <input id="vip-idInput" type="text" value="홍길동">
+
+        <label>CARD NO</label>
+        <input id="vip-cardNoInput" type="text" value="0000000000">
+
+        <button class="save-btn" onclick="saveVipData()">입력 내용 저장</button>
+        <button onclick="downloadVipCard()">PNG 다운로드</button>
+    </div>
 </div>
 
-<!-- 설정 패널 -->
-<div id="controls">
+<!-- ========================================== -->
+<!-- [SECTION 2] 데이터 센터 (정적 테이블) -->
+<!-- ========================================== -->
+<div id="section-data" class="section-container">
+    <div class="wrap" id="data-capture-area">
+        <div class="top-menu">
+            <div class="menu">블레스 전국 프레스티지 서비스</div>
+            <div class="menu">VIP 회원 전용 통합 매니지먼트</div>
+            <div class="menu">노블레스 회원 전용룸</div>
+        </div>
 
-    <label>VIP 선택</label><br>
-    <select id="vipSelect">
-        <option value="vip1.png">VIP 1</option>
-        <option value="vip2.png">VIP 2</option>
-        <option value="vip3.png">VIP 3</option>
-    </select><br>
+        <div class="title">실시간 데이터 현황</div>
+        <div class="subtitle">당신의 취향을 공유하며... (생략)</div>
 
-    <label>ID</label><br>
-    <input id="idInput" type="text" value="홍길동"><br>
+        <div class="left-menu">
+            <div class="left-item active">메인 화면</div>
+            <div class="left-item">주문 상태</div>
+            <div class="left-item">인증 상태</div>
+            <!-- ... 메뉴 생략 ... -->
+            <div class="left-item">담당 실장</div>
+        </div>
 
-    <label>CARD NO</label><br>
-    <input id="cardNoInput" type="text" value="0000000000"><br>
-
-    <!-- 🔥 저장 기능 버튼 추가 -->
-    <button id="saveContentBtn">입력 내용 저장</button>
-    <button id="downloadBtn">PNG 다운로드</button>
+        <table class="data-table">
+            <thead>
+                <tr><th>번호</th><th>선택 유형</th><th>포인트 금액</th><th>환불 금액</th><th>정확도</th><th>데이터 상태</th><th>서비스</th></tr>
+            </thead>
+            <tbody>
+                <tr><td contenteditable="true">1</td><td contenteditable="true">선택 가능</td><td contenteditable="true">120,000</td><td contenteditable="true">250,000</td><td>100%</td><td>정상</td><td>매진</td></tr>
+                <tr><td contenteditable="true">2</td><td contenteditable="true">선택 가능</td><td contenteditable="true">230,000</td><td contenteditable="true">276,000</td><td>100%</td><td>정상</td><td>매진</td></tr>
+                <tr><td contenteditable="true">3</td><td contenteditable="true">선택 가능</td><td contenteditable="true">570,000</td><td contenteditable="true">584,000</td><td>100%</td><td>정상</td><td>매진</td></tr>
+                <tr><td contenteditable="true">4</td><td contenteditable="true">선택 가능</td><td contenteditable="true">730,000</td><td contenteditable="true">876,000</td><td>100%</td><td>정상</td><td>매진</td></tr>
+            </tbody>
+        </table>
+        <div class="notice">[중요 공지] 업무 진행 중 핵심 정보를...</div>
+    </div>
+    <button onclick="downloadDataCenter()" style="margin-top:10px; padding:10px; background:#FFC107; border:none; cursor:pointer; color:black; font-weight:bold;">화면 캡처 다운로드</button>
 </div>
 
-<!-- html2canvas -->
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<!-- ========================================== -->
+<!-- [SECTION 3] 그룹 데이터 현황 (편집형) -->
+<!-- ========================================== -->
+<div id="section-group" class="section-container">
+    
+    <!-- 편집 패널 -->
+    <div class="setting-panel">
+        <div style="margin-bottom:5px; color:#ffdd66;">**셀 선택 후 편집**</div>
+        <div class="color-target">
+            <label><input type="radio" name="grpColorTarget" value="text" checked> 글자색</label>
+            <label><input type="radio" name="grpColorTarget" value="background"> 배경색</label>
+        </div>
+        <div class="color-palette" id="grp-palette"></div>
+        <div>
+            Size: <input type="number" id="grp-fontSize" value="14" style="width:40px; color:black;">
+            <button onclick="applyGrpFontSize()">적용</button>
+        </div>
+        <hr style="margin:5px 0; border-color:#444;">
+        <button onclick="saveGroupState()" style="width:100%; background:#8bd4be; color:black; border:none; padding:5px; cursor:pointer;">현재 상태 저장</button>
+        <button onclick="downloadGroupImg()" style="width:100%; margin-top:5px; background:#007bff; color:white; border:none; padding:5px; cursor:pointer;">이미지 다운로드</button>
+    </div>
+
+    <div class="wrap" id="group-capture-area">
+        <div class="top-menu">
+            <div class="menu">블레스 전국 프레스티지 서비스</div>
+            <div class="menu">VIP 회원 전용 통합 매니지먼트</div>
+            <div class="menu">노블레스 회원 전용룸</div>
+        </div>
+        
+        <div class="left-menu">
+            <div class="left-item active">메인 화면</div>
+            <div class="left-item">주문 상태</div>
+            <div class="left-item">인증 상태</div>
+            <div class="left-item">담당 실장</div>
+        </div>
+
+        <table class="data-table" id="grp-table">
+            <tbody>
+                <tr class="top-notice-row">
+                    <td colspan="5" contenteditable="true"><span style="color:#FF0000; font-weight:900;">DAMAGE!</span> 주의사항 4단계...</td>
+                </tr>
+                <tr class="top-data-header">
+                    <td>회원ID</td><td>주문상태</td><td>인증상태</td><td>활성화 코드</td><td>승인된 암호 코드</td>
+                </tr>
+                <tr class="top-data-row"><td contenteditable="true">jkgov1203</td><td contenteditable="true">발송 완료</td><td contenteditable="true">승인 완료</td><td contenteditable="true">NSACT..</td><td contenteditable="true">NBS..</td></tr>
+                <tr class="top-data-row"><td contenteditable="true">sxcv4752</td><td contenteditable="true">검수 대기</td><td contenteditable="true">미승인</td><td contenteditable="true">NSACT..</td><td contenteditable="true">NBS..</td></tr>
+                <tr class="top-data-row"><td contenteditable="true">qwerty24689</td><td contenteditable="true">진행 중</td><td contenteditable="true">승인 완료</td><td contenteditable="true">NSACT..</td><td contenteditable="true">NBS..</td></tr>
+                <tr class="top-data-row"><td contenteditable="true">xsgf1575</td><td contenteditable="true">발송 오류</td><td contenteditable="true">비활성화</td><td contenteditable="true">NSACT..</td><td contenteditable="true">NBS..</td></tr>
+                
+                <tr class="middle-title-row"><td colspan="5" contenteditable="true">데이터 오류처리</td></tr>
+                <tr class="middle-notice-row"><td colspan="5" contenteditable="true">1. 위 공동구매 회원들이...</td></tr>
+                
+                <tr class="bottom-data-header">
+                    <td>주문유형</td><td>주문상세</td><td>투자금액</td><td>수익금액</td><td>보장비율</td>
+                </tr>
+                <tr class="bottom-data-row"><td contenteditable="true">A</td><td contenteditable="true">[2종택1]</td><td contenteditable="true" class="red-text">1,500,000</td><td contenteditable="true">1,650,000</td><td contenteditable="true" class="red-text">0%</td></tr>
+                <tr class="bottom-data-row"><td contenteditable="true">B</td><td contenteditable="true">[2종택1]</td><td contenteditable="true" class="red-text">2,500,000</td><td contenteditable="true">2,750,000</td><td contenteditable="true" class="red-text">100%</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
 
 <script>
-    const idText = document.getElementById("idText");
-    const cardNoText = document.getElementById("cardNoText");
-    const idInput = document.getElementById("idInput");
-    const cardNoInput = document.getElementById("cardNoInput");
-    const vipSelect = document.getElementById("vipSelect");
-    const cardArea = document.getElementById("cardArea");
+    // ----------------------------------------
+    // 1. 탭 전환 로직
+    // ----------------------------------------
+    function showSection(id) {
+        // 모든 섹션 숨김
+        document.querySelectorAll('.section-container').forEach(el => {
+            el.classList.remove('active');
+            // VIP 섹션은 display:flex, 나머지는 display:block 처리를 CSS에서 함
+        });
+        // 선택된 섹션 보임
+        document.getElementById(id).classList.add('active');
 
-    /* 1. 초기화: 저장된 내용이 있으면 불러오기 */
-    function loadSavedData() {
+        // 버튼 활성화 스타일
+        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+    }
+
+    // ----------------------------------------
+    // 2. [SECTION 1] VIP 기능
+    // ----------------------------------------
+    function loadVipData() {
         const savedId = localStorage.getItem('vip_id');
         const savedNo = localStorage.getItem('vip_cardNo');
         const savedBg = localStorage.getItem('vip_bg');
-
-        if (savedId) {
-            idInput.value = savedId;
-            idText.textContent = "ID: " + savedId;
-        }
-        if (savedNo) {
-            cardNoInput.value = savedNo;
-            cardNoText.textContent = "CARD NO: " + savedNo;
-        }
-        if (savedBg) {
-            vipSelect.value = savedBg;
-            cardArea.style.backgroundImage = `url('${savedBg}')`;
+        if(savedId) { document.getElementById('vip-idInput').value = savedId; document.getElementById('vip-idText').innerText = "ID: " + savedId; }
+        if(savedNo) { document.getElementById('vip-cardNoInput').value = savedNo; document.getElementById('vip-cardNoText').innerText = "CARD NO: " + savedNo; }
+        if(savedBg) { 
+            document.getElementById('vip-select').value = savedBg; 
+            document.getElementById('vip-cardArea').style.backgroundImage = `url('${savedBg}')`; 
         }
     }
-    // 페이지 로드 시 실행
-    loadSavedData();
+    loadVipData();
 
-    /* 텍스트 입력 변경 */
-    idInput.addEventListener("input", e => {
-        idText.textContent = "ID: " + e.target.value;
+    document.getElementById('vip-idInput').addEventListener('input', e => {
+        document.getElementById('vip-idText').innerText = "ID: " + e.target.value;
+    });
+    document.getElementById('vip-cardNoInput').addEventListener('input', e => {
+        document.getElementById('vip-cardNoText').innerText = "CARD NO: " + e.target.value;
+    });
+    document.getElementById('vip-select').addEventListener('change', e => {
+        document.getElementById('vip-cardArea').style.backgroundImage = `url('${e.target.value}')`;
     });
 
-    cardNoInput.addEventListener("input", e => {
-        cardNoText.textContent = "CARD NO: " + e.target.value;
-    });
+    function saveVipData() {
+        localStorage.setItem('vip_id', document.getElementById('vip-idInput').value);
+        localStorage.setItem('vip_cardNo', document.getElementById('vip-cardNoInput').value);
+        localStorage.setItem('vip_bg', document.getElementById('vip-select').value);
+        alert("VIP 카드 정보 저장 완료!");
+    }
 
-    /* VIP 배경 변경 */
-    vipSelect.addEventListener("change", e => {
-        cardArea.style.backgroundImage = `url('${e.target.value}')`;
-    });
-
-    /* 🔥 내용 저장 버튼 기능 */
-    document.getElementById("saveContentBtn").addEventListener("click", () => {
-        localStorage.setItem('vip_id', idInput.value);
-        localStorage.setItem('vip_cardNo', cardNoInput.value);
-        localStorage.setItem('vip_bg', vipSelect.value);
-        alert("현재 입력된 내용이 저장되었습니다!\n다음에 다시 열면 그대로 유지됩니다.");
-    });
-
-    /* PNG 저장 */
-    document.getElementById("downloadBtn").addEventListener("click", () => {
-        html2canvas(cardArea).then(canvas => {
-            const link = document.createElement("a");
-            link.download = "vip_card.png";
+    function downloadVipCard() {
+        html2canvas(document.getElementById('vip-cardArea')).then(canvas => {
+            const link = document.createElement('a');
+            link.download = 'vip_card.png';
             link.href = canvas.toDataURL();
             link.click();
         });
-    });
-</script>
+    }
 
+    // ----------------------------------------
+    // 3. [SECTION 2] 데이터 센터 다운로드
+    // ----------------------------------------
+    function downloadDataCenter() {
+        html2canvas(document.getElementById('data-capture-area')).then(canvas => {
+            const link = document.createElement('a');
+            link.download = 'data_center.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+    }
+
+    // ----------------------------------------
+    // 4. [SECTION 3] 그룹 데이터 현황 (편집 기능)
+    // ----------------------------------------
+    const grpColors = ['#FFFFFF', '#FF0000', '#FFFF00', '#00FF00', '#00FFFF', '#0000FF', '#FF00FF', '#000000'];
+    const grpPalette = document.getElementById('grp-palette');
+    
+    // 팔레트 생성
+    grpColors.forEach(c => {
+        const d = document.createElement('div');
+        d.className = 'color-swatch'; d.style.backgroundColor = c;
+        d.onclick = () => applyGrpColor(c);
+        grpPalette.appendChild(d);
+    });
+
+    // 셀 선택 (클릭)
+    document.getElementById('grp-table').addEventListener('click', e => {
+        if(e.target.tagName === 'TD') {
+            // Shift 키 누르면 다중 선택
+            if(!e.shiftKey) document.querySelectorAll('#grp-table td.selected').forEach(td => td.classList.remove('selected'));
+            e.target.classList.toggle('selected');
+        }
+    });
+
+    function applyGrpColor(color) {
+        const target = document.querySelector('input[name="grpColorTarget"]:checked').value;
+        document.querySelectorAll('#grp-table td.selected').forEach(td => {
+            if(target === 'text') td.style.color = color;
+            else td.style.backgroundColor = color;
+        });
+    }
+
+    function applyGrpFontSize() {
+        const size = document.getElementById('grp-fontSize').value + 'px';
+        document.querySelectorAll('#grp-table td.selected').forEach(td => {
+            td.style.fontSize = size;
+        });
+    }
+
+    function saveGroupState() {
+        localStorage.setItem('grp_table_html', document.getElementById('grp-table').innerHTML);
+        alert("그룹 데이터 상태 저장 완료!");
+    }
+
+    function loadGroupState() {
+        const saved = localStorage.getItem('grp_table_html');
+        if(saved) document.getElementById('grp-table').innerHTML = saved;
+    }
+    loadGroupState();
+
+    function downloadGroupImg() {
+        // 설정창 숨기고 캡처
+        document.querySelector('#section-group .setting-panel').style.display = 'none';
+        html2canvas(document.getElementById('group-capture-area'), {scale:2}).then(canvas => {
+            const link = document.createElement('a');
+            link.download = 'group_status.png';
+            link.href = canvas.toDataURL();
+            link.click();
+            document.querySelector('#section-group .setting-panel').style.display = 'block';
+        });
+    }
+
+    // 드래그 기능 (그룹 데이터용)
+    const draggables = document.querySelectorAll('#section-group .data-table, #section-group .left-menu');
+    let isDrag = false, curEl = null, offX = 0, offY = 0;
+    draggables.forEach(el => {
+        el.style.cursor = 'move';
+        el.onmousedown = (e) => {
+            if(e.target.isContentEditable) return;
+            isDrag = true; curEl = el;
+            offX = e.clientX - el.getBoundingClientRect().left;
+            offY = e.clientY - el.getBoundingClientRect().top;
+        };
+    });
+    document.onmousemove = (e) => {
+        if(!isDrag) return;
+        const wrap = document.getElementById('group-capture-area').getBoundingClientRect();
+        curEl.style.left = (e.clientX - wrap.left - offX) + 'px';
+        curEl.style.top = (e.clientY - wrap.top - offY) + 'px';
+    };
+    document.onmouseup = () => isDrag = false;
+
+</script>
 </body>
 </html>
