@@ -1,0 +1,199 @@
+/* style.css */
+
+/* 기본 스타일 및 색상 */
+body {
+    font-family: 'Malgun Gothic', 'Arial', sans-serif;
+    background-color: #0d0d0d; /* 전체 배경 */
+    color: #e0e0e0;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+}
+
+#appContainer {
+    width: 100%;
+    max-width: 450px; /* 모바일 뷰 고정 */
+    background-color: #1c1c1c; /* 앱 배경 */
+    min-height: 100vh;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    position: relative;
+}
+
+.section-container {
+    padding: 15px 12px;
+    margin-bottom: 10px;
+    border-top: 1px solid #333;
+}
+
+/* 상단 헤더 및 배너 */
+.main-header {
+    background-color: #111;
+    position: relative;
+}
+.header-banner {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+.header-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    padding: 15px;
+    width: 100%;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+    box-sizing: border-box;
+}
+.logo-box {
+    color: #d4af37; /* 금색 */
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+.header-info p {
+    font-size: 0.8em;
+    margin: 3px 0;
+    color: #ccc;
+}
+
+/* 메뉴 버튼 영역 */
+.shortcut-menu {
+    display: flex;
+    justify-content: space-around;
+    background-color: #222;
+    padding: 10px 0;
+    border-bottom: 2px solid #d4af37;
+}
+.menu-item {
+    text-align: center;
+    font-size: 0.9em;
+    color: #ccc;
+    cursor: pointer;
+}
+.menu-item .icon {
+    display: block;
+    font-size: 1.5em;
+    margin-bottom: 5px;
+}
+.menu-item.vip {
+    color: #d4af37;
+    font-weight: bold;
+}
+
+/* 지역 필터링 스타일 */
+.region-filter-box h2 {
+    font-size: 1em;
+    margin-bottom: 10px;
+    color: #d4af37;
+}
+.regions-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3열 배치 */
+    gap: 8px;
+}
+.region-tag {
+    background-color: #444;
+    color: #eee;
+    padding: 8px;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 0.85em;
+    cursor: pointer;
+}
+
+/* 매니저 리스트 스타일 */
+.section-container h2 {
+    font-size: 1.1em;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+#moreRegionBtn {
+    color: #d4af37;
+    font-size: 0.8em;
+    cursor: pointer;
+}
+.manager-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 2열 배치 */
+    gap: 12px;
+}
+.manager-card {
+    background-color: #333;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+}
+.manager-card img {
+    width: 100%;
+    height: 180px; 
+    object-fit: cover;
+    display: block;
+}
+.card-info {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    padding: 8px;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+    box-sizing: border-box;
+}
+.manager-name {
+    font-size: 1.0em;
+    font-weight: bold;
+    color: white;
+}
+.manager-status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75em;
+    color: #ccc;
+    margin-top: 3px;
+}
+.manager-status .likes {
+    color: #ff5252; /* 하트 색상 */
+}
+.status-tag {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: #d4af37;
+    color: #1c1c1c;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-size: 0.7em;
+    font-weight: bold;
+}
+.region-label {
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #eee;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 0.7em;
+}
+
+/* 하단 메뉴 */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    max-width: 450px;
+    display: flex;
+    justify-content: space-around;
+    background-color: #222;
+    border-top: 1px solid #444;
+    padding: 10px 0;
+    box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.3);
+}
+.nav-item {
+    text-align: center;
+    font-size: 0.8em;
+    cursor: pointer;
+}
+.nav-item.active {
+    color: #d4af37;
+    font-weight: bold;
+}
