@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>노블레스 클럽 - 매니저 리스트</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="appContainer">
+    
+    <header class="main-header">
+        <img class="header-banner" src="https://via.placeholder.com/450x150.png?text=Top+Banner+Image" alt="노블레스 상단 배너">
+        <div class="header-info">
+            <div class="logo-box">노블레스 NOBLESSE</div>
+            <p>최상의 서비스, 매혹적인 그녀, 그리고 완벽한 보안</p>
+            <p>노블레스에서 최상위 데이트를 경험하십시오.</p>
+        </div>
+    </header>
+
+    <nav class="shortcut-menu">
+        <div class="menu-item"><span class="icon">🎁</span> 이벤트</div>
+        <div class="menu-item"><span class="icon">📰</span> 최근 뉴스</div>
+        <div class="menu-item"><span class="icon">🎥</span> 동영상</div>
+        <div class="menu-item vip"><span class="icon">👑</span> 매니저 프로필</div>
+    </nav>
+
+    <div class="section-container region-filter-box">
+        <h2>| 인기 도시:</h2>
+        <div id="regions" class="regions-grid">
+            </div>
+    </div>
+    
+    <div class="section-container">
+        <h2>| 출장 가능한 매니저 <span id="moreRegionBtn">더보기</span></h2>
+        <div id="managerList" class="manager-grid">
+            </div>
+    </div>
+
+    <footer class="bottom-nav">
+        <div class="nav-item active">홈페이지</div>
+        <div class="nav-item">매니저 프로필</div>
+        <div class="nav-item">이벤트</div>
+        <div class="nav-item">동영상</div>
+        <div class="nav-item">My페이지</div>
+    </footer>
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
