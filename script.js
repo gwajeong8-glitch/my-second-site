@@ -1,115 +1,113 @@
 // script.js
 
-// data.js에서 변수 (managersData, fullRegions 등)를 가져와 사용합니다.
+// data.js와 manager_card.js에서 변수/함수 사용 가능
 
-// 1. DOM 요소 및 상태 변수
-const regionsDiv = document.getElementById('regions');
-const managerListDiv = document.getElementById('managerList');
-const moreRegionBtn = document.getElementById('moreRegionBtn');
-const pageContents = document.querySelectorAll('.page-content');
-const navItems = document.querySelectorAll('[data-page]');
+const mainContentArea = document.getElementById('mainContentArea');
+const navItems = document.querySelectorAll('.nav-item');
+let currentActiveRegion = null;
 
-let isRegionsExpanded = false; // 지역 필터 확장 상태
-let currentActiveRegion = null; // 현재 선택된 지역
+// 1. 페이지 로드 함수 (경로 수정: pages/page_name.html)
+async function loadPage(pageName) {
+    const url = `pages/page_${pageName}.html`;
+    
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        
+        const htmlContent = await response.text();
+        mainContentArea.innerHTML = htmlContent;
 
-// 2. 페이지 전환 로직 (모든 메뉴 버튼 동작)
-function showPage(pageId) {
-    // 모든 페이지 숨기기
-    pageContents.forEach(p => p.classList.remove('active'));
-    // 요청된 페이지 보이기
-    const targetPage = document.getElementById(pageId);
-    if (targetPage) {
-        targetPage.classList.add('active');
-    }
-
-    // 메뉴 활성화 상태 업데이트
-    document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
-        item.classList.remove('active');
-        if (item.dataset.page === pageId) {
-            item.classList.add('active');
+        // 콘텐츠 로드 후, 해당 페이지의 동적 스크립트를 실행
+        if (pageName === 'home') {
+            initializeHomePage();
         }
-    });
+        
+    } catch (e) {
+        mainContentArea.innerHTML = `<div style="padding: 50px; text-align: center; color: red;">페이지 로드 오류: ${pageName}</div>`;
+        console.error("페이지 로드 실패:", e);
+    }
 }
 
-// 3. 매니저 카드 렌더링 (필터링 적용)
-function renderManagerList() {
-    let managersToRender = managersData;
+// 2. 홈페이지 로드 및 이벤트 초기화 함수 (이전과 동일한 로직)
+function initializeHomePage() {
+    const regionsDiv = document.getElementById('regions');
+    const managerListDiv = document.getElementById('managerList');
+    const moreRegionBtn = document.getElementById('moreRegionBtn');
+    let isRegionsExpanded = false;
 
-    // 현재 선택된 지역으로 필터링
-    if (currentActiveRegion) {
-        managersToRender = managersData.filter(m => m.region === currentActiveRegion);
+    // 매니저 카드 렌더링
+    function renderManagerList() {
+        let managersToRender = managersData;
+        if (currentActiveRegion) {
+            managersToRender = managersData.filter(m => m.region === currentActiveRegion);
+        }
+        managerListDiv.innerHTML = managersToRender.map(manager => createManagerCard(manager)).join('');
     }
 
-    // HTML 카드 생성 및 삽입
-    managerListDiv.innerHTML = managersToRender.map(manager => `
-        <div class="manager-card" data-region="${manager.region}">
-            <span class="status-tag">${manager.status}</span>
-            <img src="${manager.imgSrc}" alt="${manager.name} 매니저">
-            <div class="region-label">${manager.region}</div>
-            <div class="card-info">
-                <div class="manager-name">${manager.name}</div>
-                <div class="manager-status">
-                    <span>👁️ ${manager.id}</span>
-                    <span class="likes">❤ ${manager.likes}</span>
-                </div>
+    // 지역 태그 렌더링 및 클릭 이벤트 설정
+    function renderRegionTags() {
+        const displayRegions = isRegionsExpanded ? fullRegions : fullRegions.slice(0, initialRegionsDisplayed);
+
+        regionsDiv.innerHTML = displayRegions.map(region => `
+            <div class="region-tag ${currentActiveRegion === region ? 'active' : ''}" data-region="${region}">
+                ${region}
             </div>
-        </div>
-    `).join('');
-}
+        `).join('');
 
-// 4. 지역 태그 렌더링 및 클릭 이벤트 설정 (필터링 동작)
-function renderRegionTags() {
-    const displayRegions = isRegionsExpanded ? fullRegions : fullRegions.slice(0, initialRegionsDisplayed);
-
-    regionsDiv.innerHTML = displayRegions.map(region => `
-        <div class="region-tag ${currentActiveRegion === region ? 'active' : ''}" data-region="${region}">
-            ${region}
-        </div>
-    `).join('');
-
-    // 태그 클릭 시 필터링 실행
-    document.querySelectorAll('.region-tag').forEach(tag => {
-        tag.addEventListener('click', (e) => {
-            const newRegion = e.target.dataset.region;
-
-            // 필터 토글: 동일 지역 클릭 시 필터 해제
-            currentActiveRegion = (currentActiveRegion === newRegion) ? null : newRegion;
-            
-            // 리스트 및 UI 업데이트
-            renderManagerList();
-            
-            // 활성 클래스 업데이트
-            document.querySelectorAll('.region-tag').forEach(t => t.classList.remove('active'));
-            if (currentActiveRegion === newRegion) {
-                e.target.classList.add('active');
-            }
+        document.querySelectorAll('.region-tag').forEach(tag => {
+            tag.addEventListener('click', (e) => {
+                const newRegion = e.target.dataset.region;
+                currentActiveRegion = (currentActiveRegion === newRegion) ? null : newRegion;
+                renderManagerList();
+                document.querySelectorAll('.region-tag').forEach(t => t.classList.remove('active'));
+                if (currentActiveRegion === newRegion) {
+                    e.target.classList.add('active');
+                }
+            });
         });
-    });
-}
+    }
 
-// 5. 초기화 및 이벤트 리스너 통합
-document.addEventListener("DOMContentLoaded", () => {
-    // 초기 렌더링
-    renderRegionTags();
-    renderManagerList();
-    showPage('homePage');
-
-    // 페이지 전환 버튼 이벤트 (하단 메뉴와 단축 메뉴)
-    navItems.forEach(item => {
-        item.addEventListener('click', (e) => {
-            const pageId = item.dataset.page;
-            if (pageId) {
-                showPage(pageId);
-            }
-        });
-    });
-
-    // '더보기' 버튼 이벤트
+    // '더 많은 지역' 버튼 이벤트
     if (moreRegionBtn) {
         moreRegionBtn.addEventListener('click', () => {
             isRegionsExpanded = !isRegionsExpanded;
-            moreRegionBtn.textContent = isRegionsExpanded ? '간단히' : '+ 더 많은 지역' ; // 원본 이미지 문구 반영
+            moreRegionBtn.textContent = isRegionsExpanded ? '간단히' : '+ 더 많은 지역';
             renderRegionTags();
         });
     }
+    
+    // 단축 메뉴 버튼 이벤트 (페이지 전환)
+    document.querySelectorAll('.shortcut-menu .menu-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const pageName = item.dataset.page;
+            showPage(pageName);
+        });
+    });
+
+    // 초기 실행
+    renderRegionTags();
+    renderManagerList();
+}
+
+// 3. 글로벌 페이지 전환 함수
+function showPage(pageName) {
+    loadPage(pageName);
+    navItems.forEach(item => item.classList.remove('active'));
+    
+    // 하단 메뉴 활성화 업데이트
+    const targetNav = document.querySelector(`.nav-item[data-page="${pageName}"]`);
+    if (targetNav) {
+        targetNav.classList.add('active');
+    }
+}
+
+// 4. 초기 로드
+document.addEventListener("DOMContentLoaded", () => {
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const pageName = item.dataset.page;
+            showPage(pageName);
+        });
+    });
+    showPage('home');
 });
