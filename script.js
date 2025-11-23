@@ -1,12 +1,12 @@
-// ... (기존 colors, colorPalette 등 변수 선언 유지) ...
+// --- 1. 색상 팔레트 및 편집 기능 변수 설정 ---
 
 const colors = [
     '#FF0000', '#FF4500', '#FFA500', '#FFFF00', '#ADFF2F', '#00FF00', '#3CB371', '#00FFFF',
     '#1E90FF', '#0000FF', '#8A2BE2', '#9400D3', '#FF00FF', '#FF69B4', '#FFC0CB', '#FFFFFF',
-    '#CCCCCC', '#999999', '#666666', '#333333', '#000000', 
+    '#CCCCCC', '#999999', '#666666', '#333333', '#000000',
     '#800000', '#8B4513', '#D2B48C', '#F5DEB3', '#9ACD32', '#556B2F', '#008080', '#4682B4',
-    '#4169E1', '#800080', '#DDA0DD', '#F08080', '#2F4F4F', '#A9A9A9', '#778899', '#C0C0C0', 
-    '#228B22', '#CD5C5C', '#6A5ACD' 
+    '#4169E1', '#800080', '#DDA0DD', '#F08080', '#2F4F4F', '#A9A9A9', '#778899', '#C0C0C0',
+    '#228B22', '#CD5C5C', '#6A5ACD'
 ];
 
 const colorPalette = document.querySelector('.color-palette');
@@ -18,55 +18,37 @@ const fontSizeInput = document.getElementById('fontSizeInput');
 const topRowHeightInput = document.getElementById('topRowHeightInput');
 const middleRowHeightInput = document.getElementById('middleRowHeightInput');
 const bottomRowHeightInput = document.getElementById('bottomRowHeightInput');
-
-// ⭐ 새로운 제목 행 높이 입력 필드 추가
-const bottomTitleRowHeightInput = document.createElement('input');
-bottomTitleRowHeightInput.type = 'number';
-bottomTitleRowHeightInput.id = 'bottomTitleRowHeightInput';
-bottomTitleRowHeightInput.min = '10';
-bottomTitleRowHeightInput.max = '60';
-bottomTitleRowHeightInput.value = '20'; // 기본값 설정
-bottomTitleRowHeightInput.style.width = '50px';
-bottomTitleRowHeightInput.style.color = 'black';
-
-// ⭐ 새로운 제목 행 높이 적용 버튼 추가
-const applyBottomTitleRowHeightBtn = document.createElement('button');
-applyBottomTitleRowHeightBtn.id = 'applyBottomTitleRowHeightBtn';
-applyBottomTitleRowHeightBtn.className = 'height-apply-btn';
-applyBottomTitleRowHeightBtn.dataset.target = 'bottom-title';
-applyBottomTitleRowHeightBtn.textContent = '적용';
-applyBottomTitleRowHeightBtn.style.marginLeft = '5px';
-
-
 // 📐 그룹별 적용 버튼 변수
 const applyTopRowHeightBtn = document.getElementById('applyTopRowHeightBtn');
 const applyMiddleRowHeightBtn = document.getElementById('applyMiddleRowHeightBtn');
 const applyBottomRowHeightBtn = document.getElementById('applyBottomRowHeightBtn');
 
-const resizerDisplay = document.getElementById('resizerDisplay'); 
+const resizerDisplay = document.getElementById('resizerDisplay');
+
+
+// 💡 드래그 선택을 위한 변수 추가
+let isDragging = false;
+let startCell = null; // 드래그 시작 셀
+let endCell = null; // 드래그 종료 셀
+let selectionBox = null; // 드래그 영역을 시각적으로 표시할 요소 (옵션)
 
 
 // 🚀 LocalStorage에 테이블 내용을 저장하는 함수
 function saveSettings() {
     const captureArea = document.getElementById('capture-area');
     if (captureArea) {
-        // 테이블 내용 전체 저장
+        // 'selected' 클래스를 저장하기 전에 제거하여 다음 로드 시 셀이 선택되지 않은 상태로 시작
+        document.querySelectorAll('.data-table td.selected').forEach(c => c.classList.remove('selected'));
+
         localStorage.setItem('noblesseTableState', captureArea.innerHTML);
-        
-        // 📐 세 가지 높이 입력값 모두 저장
+
         if (topRowHeightInput) localStorage.setItem('topRowHeightValue', topRowHeightInput.value);
-        if (middleRowHeightInput) localStorage.setItem('middleRowHeightValue', middleRowHeightInput.value); 
+        if (middleRowHeightInput) localStorage.setItem('middleRowHeightValue', middleRowHeightInput.value);
         if (bottomRowHeightInput) localStorage.setItem('bottomRowHeightValue', bottomRowHeightInput.value);
-        
-        // ⭐ 새로운 제목 행 높이 저장
-        if (bottomTitleRowHeightInput) localStorage.setItem('bottomTitleRowHeightValue', bottomTitleRowHeightInput.value);
 
-
-        // 🎨 현재 선택된 색상 타겟도 저장
         const colorTarget = document.querySelector('input[name="colorTarget"]:checked');
         if (colorTarget) localStorage.setItem('colorTarget', colorTarget.value);
-        
-        // 🖱️ 현재 활성화된 왼쪽 메뉴도 저장 (클래스를 문자열로 저장)
+
         const activeMenuItem = document.querySelector('.left-item.active');
         if (activeMenuItem) {
             const index = Array.from(document.querySelectorAll('.left-item')).indexOf(activeMenuItem);
@@ -81,17 +63,12 @@ function loadSettings() {
     if (savedState) {
         const captureArea = document.getElementById('capture-area');
         if (captureArea) {
-            // 저장된 HTML 상태로 DOM을 변경
             captureArea.innerHTML = savedState;
-            
-            // dataTable 변수를 새로 로드된 DOM 요소로 업데이트
             dataTable = document.querySelector('.data-table');
-            
-            // 📐 높이 입력값 로드
+
             const savedTopHeight = localStorage.getItem('topRowHeightValue');
             const savedMiddleHeight = localStorage.getItem('middleRowHeightValue');
             const savedBottomHeight = localStorage.getItem('bottomRowHeightValue');
-            const savedBottomTitleHeight = localStorage.getItem('bottomTitleRowHeightValue'); // ⭐ 새로 로드
 
             if (topRowHeightInput && savedTopHeight) {
                 topRowHeightInput.value = savedTopHeight;
@@ -102,103 +79,248 @@ function loadSettings() {
             if (bottomRowHeightInput && savedBottomHeight) {
                 bottomRowHeightInput.value = savedBottomHeight;
             }
-            // ⭐ 새로운 제목 행 높이 로드
-            if (bottomTitleRowHeightInput && savedBottomTitleHeight) {
-                bottomTitleRowHeightInput.value = savedBottomTitleHeight;
-            }
-            
-            // 🎨 저장된 색상 타겟 로드
+
             const savedColorTarget = localStorage.getItem('colorTarget') || 'text';
             const targetInput = document.querySelector(`input[name="colorTarget"][value="${savedColorTarget}"]`);
             if(targetInput) targetInput.checked = true;
-            
+
             console.log('이전 설정이 성공적으로 로드되었습니다. (Local Storage)');
         }
     }
 }
 
-// ... (initializeColorTargetControl, initializeColorPalette, initializeCellInteraction, applyColor, initializeFontSizeControl, handleApplyFontSize, downloadImage 함수는 수정 없이 유지) ...
-
-// 🎨 색상 타겟 변경 이벤트 리스너 추가 (유지)
+// 🎨 색상 타겟 변경 이벤트 리스너 추가
 function initializeColorTargetControl() {
     document.querySelectorAll('input[name="colorTarget"]').forEach(radio => {
-        radio.addEventListener('change', saveSettings); // 선택이 변경될 때마다 저장
+        radio.addEventListener('change', saveSettings);
     });
 }
 
-// 팔레트 생성 (색상 스와치 화면에 표시) (유지)
+// 팔레트 생성 (색상 스와치 화면에 표시)
 function initializeColorPalette() {
-    // 팔레트가 이미 생성되어 있다면 중복 방지
     if (colorPalette.children.length > 0) return;
-    
+
     colors.forEach(color => {
         const swatch = document.createElement('div');
         swatch.className = 'color-swatch';
         swatch.style.backgroundColor = color;
         swatch.dataset.color = color;
-        // 클릭 시 색상 적용 및 저장
         swatch.addEventListener('click', () => {
             applyColor(color);
             saveSettings();
-        }); 
+        });
         colorPalette.appendChild(swatch);
     });
 }
 
 
-// 💡 셀 클릭 이벤트 (유지)
-function initializeCellInteraction() {
-    // 기존 dataTable 이벤트 리스너가 있다면 제거 후 다시 등록 (loadSettings 때문에)
-    if (dataTable) {
-        dataTable.removeEventListener('click', handleCellClick);
-        dataTable.removeEventListener('input', saveSettings); 
+// --- 드래그 선택 로직 구현 ---
+
+/**
+ * 주어진 두 셀을 포함하는 직사각형 영역 내의 모든 셀에 'selected' 클래스를 적용합니다.
+ * @param {HTMLElement} startCell - 드래그 시작 셀
+ * @param {HTMLElement} endCell - 드래그 종료 셀
+ */
+function selectCellsInDragArea(startCell, endCell) {
+    if (!startCell || !endCell) return;
+
+    // 테이블 전체 셀 목록을 가져옵니다.
+    const allCells = Array.from(dataTable.querySelectorAll('td'));
+    const rows = Array.from(dataTable.querySelectorAll('tr'));
+
+    // 셀의 행/열 인덱스를 찾는 헬퍼 함수
+    const getCellIndices = (cell) => {
+        const row = cell.parentElement;
+        if (!row) return null;
+        const rowIndex = rows.indexOf(row);
+        // colspan이 있는 셀은 제외하고 계산해야 하지만, 간단한 구현을 위해 cell.cellIndex 사용 (일반적인 테이블 구조 가정)
+        const cellIndex = Array.from(row.children).indexOf(cell);
+        return { rowIndex, cellIndex };
+    };
+
+    const start = getCellIndices(startCell);
+    const end = getCellIndices(endCell);
+
+    if (!start || !end) return;
+
+    // 선택 영역의 최소/최대 행/열 인덱스 계산
+    const minRow = Math.min(start.rowIndex, end.rowIndex);
+    const maxRow = Math.max(start.rowIndex, end.rowIndex);
+    const minCol = Math.min(start.cellIndex, end.cellIndex);
+    const maxCol = Math.max(start.cellIndex, end.cellIndex);
+
+    // 모든 셀의 선택을 해제합니다. (Shift 키를 누르지 않고 드래그 시작 시)
+    // 드래그가 시작될 때 이미 해제되었어야 하지만, 안전을 위해 다시 확인
+    if (!window.event.shiftKey) {
+        document.querySelectorAll('.data-table td.selected').forEach(c => c.classList.remove('selected'));
     }
-    
-    // 로드된 새로운 DOM에서 dataTable 변수 재할당
+
+    // 선택 영역에 포함되는 셀을 찾아 'selected' 클래스를 추가합니다.
+    rows.forEach((row, rIndex) => {
+        if (rIndex >= minRow && rIndex <= maxRow) {
+            Array.from(row.children).forEach((cell, cIndex) => {
+                if (cIndex >= minCol && cIndex <= maxCol) {
+                    // 크기 조절 요소에 가려지지 않도록 TD 요소 자체인지 확인
+                    if (cell.tagName === 'TD') {
+                        cell.classList.add('selected');
+                    }
+                }
+            });
+        }
+    });
+}
+
+function handleDragStart(e) {
+    // 🖱️ 왼쪽 메뉴나 설정 패널을 클릭한 경우에는 드래그 방지
+    if (!e.target.closest('.data-table') || e.target.closest('.resizer-display') || e.target.closest('.col-resizer') || e.target.closest('.row-resizer')) return;
+
+    // 💡 셀 내용 편집 모드에서는 드래그 선택 방지 (텍스트 선택이 우선되어야 함)
+    if (e.target.closest('td') && e.target.closest('td').getAttribute('contenteditable') === 'true') {
+        // 셀 내용이 이미 선택되어 있다면 텍스트 드래그를 허용
+        const selection = window.getSelection();
+        if (selection.toString().length > 0) return;
+    }
+
+
+    e.preventDefault(); // 기본 드래그 방지
+    isDragging = true;
+
+    // 드래그 시작 시 기존 선택 해제 (Shift 키를 누른 경우는 제외)
+    if (!e.shiftKey) {
+        document.querySelectorAll('.data-table td.selected').forEach(c => c.classList.remove('selected'));
+    }
+
+    startCell = e.target.closest('td');
+
+    // 드래그 선택 시각적 요소 생성 (선택 사항)
+    if (!selectionBox) {
+        selectionBox = document.createElement('div');
+        selectionBox.style.position = 'absolute';
+        selectionBox.style.border = '1px dashed #FFD700';
+        selectionBox.style.backgroundColor = 'rgba(255, 215, 0, 0.1)';
+        selectionBox.style.pointerEvents = 'none'; // 마우스 이벤트를 통과시켜 셀을 선택할 수 있도록
+        selectionBox.style.zIndex = '10';
+        document.body.appendChild(selectionBox);
+    }
+    selectionBox.style.display = 'block';
+
+    // 드래그 선택 초기 위치 설정 (dataTable 기준으로)
+    const tableRect = dataTable.getBoundingClientRect();
+    const cellRect = startCell.getBoundingClientRect();
+
+    selectionBox.style.left = (cellRect.left - tableRect.left + dataTable.parentElement.offsetLeft) + 'px';
+    selectionBox.style.top = (cellRect.top - tableRect.top + dataTable.parentElement.offsetTop) + 'px';
+    selectionBox.style.width = cellRect.width + 'px';
+    selectionBox.style.height = cellRect.height + 'px';
+
+    document.addEventListener('mousemove', handleDragging);
+    document.addEventListener('mouseup', handleDragEnd);
+}
+
+function handleDragging(e) {
+    if (!isDragging) return;
+
+    // 현재 마우스 위치 아래의 셀 찾기
+    const cellUnderMouse = e.target.closest('td');
+
+    if (cellUnderMouse && cellUnderMouse !== endCell) {
+        endCell = cellUnderMouse;
+        // 선택 영역에 포함된 셀에 클래스 적용
+        selectCellsInDragArea(startCell, endCell);
+    }
+
+    // 뷰포트 내의 드래그 사각형 업데이트
+    if (selectionBox && startCell && endCell) {
+        const startRect = startCell.getBoundingClientRect();
+        const endRect = endCell.getBoundingClientRect();
+        const tableRect = dataTable.getBoundingClientRect();
+        const wrapOffsetLeft = dataTable.parentElement.offsetLeft; // .wrap의 offset
+        const wrapOffsetTop = dataTable.parentElement.offsetTop;
+
+        const left = Math.min(startRect.left, endRect.left);
+        const top = Math.min(startRect.top, endRect.top);
+        const right = Math.max(startRect.right, endRect.right);
+        const bottom = Math.max(startRect.bottom, endRect.bottom);
+
+        // .wrap 기준으로 위치 조정
+        selectionBox.style.left = (left - tableRect.left + wrapOffsetLeft) + 'px';
+        selectionBox.style.top = (top - tableRect.top + wrapOffsetTop) + 'px';
+        selectionBox.style.width = (right - left) + 'px';
+        selectionBox.style.height = (bottom - top) + 'px';
+    }
+}
+
+function handleDragEnd() {
+    if (!isDragging) return;
+
+    isDragging = false;
+    startCell = null;
+    endCell = null;
+
+    if (selectionBox) {
+        selectionBox.style.display = 'none';
+    }
+
+    document.removeEventListener('mousemove', handleDragging);
+    document.removeEventListener('mouseup', handleDragEnd);
+
+    // 드래그 종료 후 최종 상태 저장
+    saveSettings();
+}
+
+// 💡 셀 클릭 이벤트: Shift 키를 사용하여 단일/다중 선택 토글
+function initializeCellInteraction() {
+    if (dataTable) {
+        // 기존 리스너 제거
+        dataTable.removeEventListener('click', handleCellClick);
+        dataTable.removeEventListener('input', saveSettings);
+        dataTable.removeEventListener('mousedown', handleDragStart); // 드래그 시작 이벤트 제거
+
+    }
+
     dataTable = document.querySelector('.data-table');
     if (!dataTable) return;
 
     function handleCellClick(e) {
         if (e.target.tagName === 'TD') {
             const cell = e.target;
-            
-            // 크기 조절 중에는 셀 선택을 막음
-            if (dataTable.classList.contains('resizing')) return;
+
+            // 크기 조절 중이거나 드래그 중인 경우에는 셀 선택을 막습니다.
+            if (dataTable.classList.contains('resizing') || isDragging) return;
 
             if (e.shiftKey) {
-                // Shift 키를 누른 경우: 기존 선택 상태를 유지하고 현재 셀의 선택 상태를 토글합니다.
+                // Shift 키: 기존 선택 유지 및 현재 셀 토글
                 cell.classList.toggle('selected');
             } else {
-                // Shift 키를 누르지 않은 경우: 기존 선택 모두 해제 후 현재 셀만 선택합니다.
+                // Shift 키 없음: 기존 선택 모두 해제 후 현재 셀만 선택
                 document.querySelectorAll('.data-table td.selected').forEach(c => c.classList.remove('selected'));
                 cell.classList.add('selected');
             }
         }
     }
-    
+
     dataTable.addEventListener('click', handleCellClick);
-    
-    // 셀 내용 편집 이벤트: 입력이 끝날 때마다 저장
     dataTable.addEventListener('input', (e) => {
         if (e.target.tagName === 'TD' && e.target.contentEditable === 'true') {
             saveSettings();
         }
     });
 
+    // 🚀 드래그 이벤트 리스너 추가 (dataTable 전체)
+    dataTable.addEventListener('mousedown', handleDragStart);
+    // mousemove, mouseup은 handleDragStart에서 동적으로 추가/제거됩니다.
 }
 
-// 🚀 색상 적용 함수 (유지)
+// 🚀 색상 적용 함수
 function applyColor(color) {
-    const target = document.querySelector('input[name="colorTarget"]:checked').value; 
-    
-    // DOM에서 '.selected' 클래스를 가진 모든 TD를 다시 조회
+    const target = document.querySelector('input[name="colorTarget"]:checked').value;
+
     const cellsToApply = document.querySelectorAll('.data-table td.selected');
 
     cellsToApply.forEach(cell => {
         if (target === 'background') {
             cell.style.backgroundColor = color;
-            // 배경색이 적용될 경우, 호버 스타일을 오버라이드하기 위해 인라인 스타일을 적용합니다.
-            cell.dataset.bgColor = color; 
+            cell.dataset.bgColor = color;
         } else { // target === 'text'
             cell.style.color = color;
         }
@@ -206,7 +328,7 @@ function applyColor(color) {
 }
 
 
-// 📏 글꼴 크기 적용 함수 (유지)
+// 📏 글꼴 크기 적용 함수
 function initializeFontSizeControl() {
     if (applyFontSizeBtn) {
         applyFontSizeBtn.removeEventListener('click', handleApplyFontSize);
@@ -218,22 +340,22 @@ function handleApplyFontSize() {
     const newSize = fontSizeInput.value + 'px';
     document.querySelectorAll('.data-table td.selected').forEach(cell => {
         cell.style.fontSize = newSize;
-        cell.style.lineHeight = '1.2'; 
+        cell.style.lineHeight = '1.2';
     });
     saveSettings();
 }
 
 
-// --- 2. 🖼️ 이미지 다운로드 기능 (유지) ---
+// --- 2. 🖼️ 이미지 다운로드 기능 (변경 없음) ---
 function downloadImage(elementId, filename) {
     const element = document.getElementById(elementId);
     const settingPanel = document.getElementById('settingPanel');
     settingPanel.style.display = 'none';
 
     html2canvas(element, {
-        scale: 2, 
-        backgroundColor: null, 
-        useCORS: true 
+        scale: 2,
+        backgroundColor: null,
+        useCORS: true
     }).then(canvas => {
         settingPanel.style.display = 'block';
 
@@ -246,31 +368,27 @@ function downloadImage(elementId, filename) {
         document.body.removeChild(link);
     }).catch(error => {
         console.error('이미지 캡처 중 오류 발생:', error);
-        settingPanel.style.display = 'block'; 
+        settingPanel.style.display = 'block';
     });
 }
 
 
-// --- 3. 📐 셀 크기 조절 (Resizer) 로직 (유지) --- 
-let currentResizer = null; 
+// --- 3. 📐 셀 크기 조절 (Resizer) 로직 (변경 없음) ---
+let currentResizer = null;
 let startX = 0;
 let startY = 0;
 let startWidth = 0;
 let startHeight = 0;
 let isRowResizer = false;
 
-// 초기화: 각 셀에 리사이저 추가 (유지)
+// 초기화: 각 셀에 리사이저 추가
 function initializeResizers() {
-    // DOM이 변경되었으므로, 기존 리사이저를 제거하고 새로 추가
     document.querySelectorAll('.col-resizer, .row-resizer').forEach(r => r.remove());
 
-    // dataTable을 새로 로드된 DOM에서 다시 참조
     dataTable = document.querySelector('.data-table');
     if (!dataTable) return;
-    
-    dataTable.querySelectorAll('tr:not(.middle-notice-row, .top-notice-row, .bottom-title-row) td').forEach(td => { // ⭐ bottom-title-row 추가
-        
-        // 열 리사이저 (td.nextElementSibling이 있는 경우에만 추가)
+
+    dataTable.querySelectorAll('tr:not(.middle-notice-row, .top-notice-row) td').forEach(td => {
         if (td.nextElementSibling) {
             let colResizer = document.createElement('div');
             colResizer.className = 'col-resizer';
@@ -278,9 +396,7 @@ function initializeResizers() {
             colResizer.addEventListener('mousedown', startResize);
         }
 
-        // 행 리사이저
         const tr = td.parentElement;
-        // top-notice-row처럼 colspan이 있는 셀에도 리사이저가 추가되는 것을 방지
         if (td.getAttribute('colspan') === null) {
             let rowResizer = document.createElement('div');
             rowResizer.className = 'row-resizer';
@@ -290,16 +406,15 @@ function initializeResizers() {
     });
 }
 
-// 리사이즈 로직 (유지)
 function startResize(e) {
-    e.preventDefault(); 
-    
+    e.preventDefault();
+
     currentResizer = e.target;
     startX = e.clientX;
     startY = e.clientY;
-    
+
     const cell = currentResizer.parentElement;
-    
+
     if (currentResizer.classList.contains('col-resizer')) {
         isRowResizer = false;
         startWidth = cell.offsetWidth;
@@ -311,7 +426,7 @@ function startResize(e) {
         dataTable.classList.add('resizing');
         if (resizerDisplay) resizerDisplay.style.opacity = 1;
     }
-    
+
     document.addEventListener('mousemove', handleResize);
     document.addEventListener('mouseup', stopResize);
 }
@@ -320,7 +435,7 @@ function handleResize(e) {
     if (!currentResizer) return;
 
     const cell = currentResizer.parentElement;
-    
+
     if (!isRowResizer) {
         const deltaX = e.clientX - startX;
         const newWidth = startWidth + deltaX;
@@ -328,7 +443,7 @@ function handleResize(e) {
             cell.style.width = newWidth + 'px';
             cell.style.minWidth = newWidth + 'px';
         }
-        
+
         if (resizerDisplay) {
             resizerDisplay.textContent = `${Math.round(newWidth)} px (가로)`;
             resizerDisplay.style.left = (e.clientX + 10) + 'px';
@@ -338,15 +453,15 @@ function handleResize(e) {
     } else {
         const deltaY = e.clientY - startY;
         const newHeight = startHeight + deltaY;
-        
-        if (newHeight > 20) { 
+
+        if (newHeight > 20) {
             const row = cell.parentElement;
-            row.style.height = newHeight + 'px'; 
+            row.style.height = newHeight + 'px';
             row.querySelectorAll('td').forEach(td => {
                 td.style.height = newHeight + 'px';
             });
         }
-        
+
         if (resizerDisplay) {
             resizerDisplay.textContent = `${Math.round(newHeight)} px (세로)`;
             resizerDisplay.style.left = (e.clientX + 10) + 'px';
@@ -358,21 +473,20 @@ function handleResize(e) {
 function stopResize() {
     currentResizer = null;
     dataTable.classList.remove('resizing');
-    
-    if (resizerDisplay) resizerDisplay.style.opacity = 0; 
-    
+
+    if (resizerDisplay) resizerDisplay.style.opacity = 0;
+
     document.removeEventListener('mousemove', handleResize);
     document.removeEventListener('mouseup', stopResize);
-    
-    saveSettings(); 
+
+    saveSettings();
 }
 
 
-// --- 4. 🖱️ 왼쪽 메뉴 항목 색상 토글 기능 (유지) ---
+// --- 4. 🖱️ 왼쪽 메뉴 항목 색상 토글 기능 (변경 없음) ---
 function initializeLeftMenu() {
     const leftMenuItems = document.querySelectorAll('.left-item');
-    
-    // 저장된 인덱스를 로드하여 활성화
+
     const savedIndex = localStorage.getItem('activeLeftMenuIndex');
     if (savedIndex !== null) {
         leftMenuItems.forEach(i => i.classList.remove('active'));
@@ -380,50 +494,34 @@ function initializeLeftMenu() {
             leftMenuItems[parseInt(savedIndex)].classList.add('active');
         }
     }
-    
+
     leftMenuItems.forEach(item => {
-        // 기존 리스너 제거 후 다시 등록
         item.removeEventListener('click', handleLeftMenuClick);
         item.addEventListener('click', handleLeftMenuClick);
     });
-    
+
     function handleLeftMenuClick() {
         leftMenuItems.forEach(i => i.classList.remove('active'));
         this.classList.add('active');
-        saveSettings(); 
+        saveSettings();
     }
 }
 
 
-// 🚀 특정 행 선택자에 강제 높이 스타일을 적용하는 함수 (유지)
+// 🚀 특정 행 선택자에 강제 높이 스타일을 적용하는 함수 (변경 없음)
 function applyRowHeight(selector, newHeight) {
-    // 인라인 스타일로 적용
     document.querySelectorAll(selector).forEach(row => {
         row.style.height = newHeight;
         row.querySelectorAll('td').forEach(td => {
             td.style.height = newHeight;
-            td.style.lineHeight = '1.2'; // 높이 변경 시 라인 높이 일관성 유지
+            td.style.lineHeight = '1.2';
         });
     });
 }
 
 
-// --- 5. 📏 그룹별 행 높이 조절 기능 ---
+// --- 5. 📏 그룹별 행 높이 조절 기능 (변경 없음) ---
 function initializeRowHeightControl() {
-    
-    const heightControlDiv = document.querySelector('#settingPanel > div:nth-child(4)'); // 📐 그룹별 행 높이 (px) 섹션
-
-    // ⭐ 새로운 제목 행 높이 입력 필드와 버튼을 DOM에 추가
-    const bottomTitleLabel = document.createElement('label');
-    bottomTitleLabel.textContent = '하단 제목 행 높이:';
-    bottomTitleLabel.style.display = 'block';
-    bottomTitleLabel.style.marginTop = '5px';
-    
-    // 기존 하단 데이터 행 입력 필드 앞으로 삽입
-    heightControlDiv.insertBefore(bottomTitleLabel, document.querySelector('label[for="bottomRowHeightInput"]'));
-    heightControlDiv.insertBefore(bottomTitleRowHeightInput, document.querySelector('label[for="bottomRowHeightInput"]'));
-    heightControlDiv.insertBefore(applyBottomTitleRowHeightBtn, document.querySelector('label[for="bottomRowHeightInput"]'));
-
 
     if (applyTopRowHeightBtn && topRowHeightInput) {
         applyTopRowHeightBtn.removeEventListener('click', handleApplyTopRowHeight);
@@ -436,14 +534,6 @@ function initializeRowHeightControl() {
         applyMiddleRowHeightBtn.addEventListener('click', handleApplyMiddleRowHeight);
         applyRowHeight('.middle-notice-row', middleRowHeightInput.value + 'px');
     }
-
-    // ⭐ 새로운 제목 행 높이 조절 기능 연결
-    if (applyBottomTitleRowHeightBtn && bottomTitleRowHeightInput) {
-        applyBottomTitleRowHeightBtn.removeEventListener('click', handleApplyBottomTitleRowHeight);
-        applyBottomTitleRowHeightBtn.addEventListener('click', handleApplyBottomTitleRowHeight);
-        applyRowHeight('.bottom-title-row', bottomTitleRowHeightInput.value + 'px');
-    }
-
 
     if (applyBottomRowHeightBtn && bottomRowHeightInput) {
         applyBottomRowHeightBtn.removeEventListener('click', handleApplyBottomRowHeight);
@@ -462,15 +552,7 @@ function handleApplyTopRowHeight() {
 function handleApplyMiddleRowHeight() {
     const newHeightValue = middleRowHeightInput.value;
     const newHeight = newHeightValue + 'px';
-    applyRowHeight('.middle-notice-row', newHeight); 
-    saveSettings();
-}
-
-// ⭐ 새로운 제목 행 높이 적용 함수
-function handleApplyBottomTitleRowHeight() {
-    const newHeightValue = bottomTitleRowHeightInput.value;
-    const newHeight = newHeightValue + 'px';
-    applyRowHeight('.bottom-title-row', newHeight);
+    applyRowHeight('.middle-notice-row', newHeight);
     saveSettings();
 }
 
@@ -482,21 +564,21 @@ function handleApplyBottomRowHeight() {
 }
 
 
-// 페이지 로드 시 기능 초기화 (유지)
+// 페이지 로드 시 기능 초기화
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. 색상 팔레트 초기화 (DOM 구조와 무관)
-    initializeColorPalette(); 
-    
+    // 1. 색상 팔레트 초기화
+    initializeColorPalette();
+
     // 2. 저장된 설정을 먼저 로드하여 DOM 구조와 UI 입력값 복원
-    loadSettings(); 
-    
+    loadSettings();
+
     // 3. 로드된 새로운 DOM 구조에 맞춰 모든 이벤트와 리사이저를 초기화
-    initializeCellInteraction(); 
-    initializeColorTargetControl(); 
+    initializeCellInteraction(); // 🚀 드래그 선택 리스너 포함
+    initializeColorTargetControl();
     initializeFontSizeControl();
-    initializeResizers(); 
-    initializeLeftMenu(); 
-    initializeRowHeightControl(); // UI 입력값을 바탕으로 최종 높이 적용
+    initializeResizers();
+    initializeLeftMenu();
+    initializeRowHeightControl();
 
     // 다운로드 버튼에 이벤트 핸들러 할당
     document.querySelector('.download-button').removeEventListener('click', downloadImage);
