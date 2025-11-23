@@ -1,136 +1,327 @@
-/* style.css */
-
-/* CSS 변수 설정 (색상 및 폰트 중앙 관리) */
-:root {
-    --color-background-dark: #121212;
-    --color-app-dark: #1e1e1e;
-    --color-text-light: #f0f0f0;
-    --color-accent-gold: #d4af37;
-    --color-separator: #333;
-    --font-primary: 'Noto Sans KR', sans-serif;
+:root{
+    /* 🚀 미래지향적인 다크/네온 색상 팔레트 */
+    --main-bg-color: rgba(10, 25, 45, 0.95); /* Deep Dark Blue with slight transparency */
+    --table-header-bg: linear-gradient(180deg, #1e5a8c, #0a3d62); /* Dark Blue Gradient */
+    --table-header-text: #ffffff;
+    --table-row-bg: rgba(10, 50, 60, 0.6); /* Transparent Dark Teal for Rows */
+    --table-row-text: #E0F7FA; /* Light Aqua/Cyan text */
+    --table-border: rgba(255,255,255,0.08); /* Minimal, subtle border */
+    
+    /* 강조 색상 (네온 효과) */
+    --accent-color: #FFEB3B; /* Neon Yellow/Gold */
+    --accent-red: #FF0077; /* Bright Neon Magenta for warnings */
+    
+    --col-num-text-color: var(--accent-red); 
 }
 
-/* 기본 설정 */
+/* 🎨 Body 및 Global Styles */
 body {
-    font-family: var(--font-primary);
-    background-color: var(--color-background-dark);
-    color: var(--color-text-light);
+    /* 🚀 배경 이미지를 vip2.jpg로 변경하고, 중앙 하단에 고정 */
+    background: url('vip2.jpg') no-repeat center 100px fixed; 
+    background-size: cover; 
     margin: 0;
     padding: 0;
-    display: flex;
-    justify-content: center;
-}
-#appContainer {
-    width: 100%;
-    max-width: 450px; 
-    background-color: var(--color-app-dark);
-    min-height: 100vh;
-    box-shadow: 0 0 30px rgba(0, 0, 0, 0.6); /* 더 깊은 그림자 */
-    position: relative;
-    overflow-x: hidden;
-}
-
-/* 페이지 콘텐츠 영역 */
-.page-content-wrapper { padding-bottom: 70px; }
-.section-container { 
-    padding: 15px 12px; 
-    border-top: 0.5px solid var(--color-separator); /* 더 얇은 구분선 */
-}
-.section-container h2 { 
-    font-size: 1.1em; 
-    font-weight: 700;
-    margin-bottom: 15px; 
-    color: var(--color-text-light);
-}
-
-/* 상단 헤더 및 공지 */
-.header-banner { width: 100%; height: 200px; object-fit: cover; }
-.notice-bar { 
-    background-color: #282828; 
-    padding: 10px 12px; 
-    font-size: 0.85em; 
-    color: #ccc; 
-    border-bottom: 1px solid var(--color-separator);
-}
-
-/* 단축 메뉴 */
-.shortcut-menu { 
-    display: flex; 
-    justify-content: space-around; 
-    background-color: #222; 
-    padding: 15px 0; 
-    border-bottom: 1px solid var(--color-separator);
-}
-.menu-item .icon { color: var(--color-accent-gold); font-size: 1.6em; }
-
-/* 지역 필터 */
-.regions-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.region-tag { 
-    background-color: #383838; 
-    padding: 10px 5px; /* 약간 더 크게 */
-    border-radius: 6px; 
-    text-align: center; 
-    font-size: 0.9em; 
-    border: 1px solid var(--color-separator);
-    transition: background-color 0.2s, color 0.2s;
-}
-.region-tag.active { 
-    background-color: var(--color-accent-gold); 
-    color: var(--color-app-dark); 
-    font-weight: 700; 
-    border-color: var(--color-accent-gold);
-}
-#moreRegionBtn {
-    background-color: #282828;
-    color: var(--color-accent-gold);
-    padding: 10px 20px;
-    border-radius: 20px;
-    margin: 20px auto 0;
-    font-size: 0.95em;
-    border: 1px solid var(--color-accent-gold);
-}
-
-/* 매니저 카드 리스트 */
-.manager-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; } /* 간격 넓힘 */
-.manager-card { 
-    background-color: #282828; /* 배경색 조정 */
-    border-radius: 10px; /* 더 둥근 모서리 */
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: white;
     overflow: hidden; 
-    position: relative;
-    border: 1px solid #383838;
 }
-.manager-card img { width: 100%; height: 200px; object-fit: cover; display: block; }
+.wrap {
+    /* 래퍼 (캡처 대상 영역) */
+    width:1024px;
+    height:540px; /* 높이 조정 */
+    margin:20px auto 0 auto; 
+    position:relative;
+    /* 배경 이미지를 살리기 위해 wrap의 배경은 투명하게 유지 */
+    background-color: transparent; 
+    /* 미묘한 입체감을 위한 그림자 */
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+}
 
-/* 오버레이 텍스트 (더 선명하게) */
-.overlay-name { top: 8px; left: 8px; font-weight: 700; font-size: 1.1em; color: white; text-shadow: 1px 1px 3px #000; }
-.overlay-status { bottom: 8px; left: 8px; font-size: 0.75em; color: #ccc; text-shadow: 1px 1px 2px #000; }
-.overlay-likes { bottom: 8px; left: 90px; font-size: 0.75em; color: #ff5252; text-shadow: 1px 1px 2px #000; }
-.status-tag { 
-    top: 8px; right: 8px; 
-    background-color: var(--color-accent-gold); 
-    color: var(--color-app-dark); 
-    padding: 4px 8px; 
-    border-radius: 5px; 
-    font-size: 0.75em; 
+/* 상단 탭 */
+.top-sub-menu{
+    position:absolute;
+    top:50px; /* 위치 조정 */
+    left:190px;
+    display:flex;
+    gap:10px;
+    z-index:5;
+}
+.top-sub-menu .menu{
+    background:rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding:8px 15px;
+    border-radius:20px; /* 둥근 모양 */
+    font-size:13px;
+    font-weight: 300;
+    backdrop-filter: blur(2px);
+}
+
+/* 왼쪽 메뉴 */
+.left-menu{
+    position:absolute;
+    left:50px;
+    top:120px; /* 위치 조정 */
+    width:130px; /* 폭 확장 */
+    line-height:2;
+    font-size:14px;
+    z-index:5;
+    background: rgba(0,0,0,0.3);
+    padding: 10px 0;
+    border-radius: 5px;
+}
+.left-item{
+    padding:3px 15px;
+    cursor:pointer;
+    transition:0.2s;
+}
+.left-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+.left-item.active{
+    color:var(--accent-color);
+    font-weight:700;
+    /* 네온 효과 */
+    text-shadow:0 0 8px rgba(255, 235, 59, 0.7); 
+    border-left: 3px solid var(--accent-color);
+    background: rgba(255, 235, 59, 0.05);
+}
+
+/* 📊 테이블 스타일 */
+.data-table{
+    position:absolute;
+    top:100px; /* 위치 조정 */
+    left:180px; /* 위치 조정 */
+    width:780px; /* 폭 확장 */
+    border-collapse:collapse;
+    font-size:8px;
+    z-index:4;
+    overflow:hidden;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.7);
+    border-radius: 6px;
+}
+
+/* 테이블 셀 기본 스타일 */
+.data-table td{
+    /* 테이블 배경을 반투명하게 설정하여 배경 이미지가 비치도록 함 */
+    background: var(--table-row-bg); 
+    color: var(--table-row-text); 
+    padding:4px 6px; /* 패딩 증가 */
+    min-height:20px;
+    text-align:center;
+    border-bottom:1px solid var(--table-border);
+    border-right:1px solid var(--table-border);
+    white-space: nowrap;
+    outline: none; 
+    transition: background-color 0.2s;
+}
+
+/* 마지막 셀의 오른쪽 경계선 제거 */
+.data-table tr td:last-child {
+    border-right: none;
+}
+
+/* 활성 셀(td) 스타일: 클릭 시 네온 테두리로 강조 */
+.data-table td.selected {
+    outline: 2px solid var(--accent-color) !important; 
+    outline-offset: -2px;
+    box-shadow: 0 0 5px var(--accent-color);
+    cursor: pointer;
+}
+
+/* 호버 시 배경색 수정 */
+.data-table tr:hover td:not([style*="background-color"]){
+    /* 호버 시 조금 더 밝은 투명 배경 */
+    background: rgba(30, 80, 90, 0.7); 
+}
+
+
+/* 상단 공지 통합 셀 */
+.data-table .top-notice-row td {
+    background: rgba(255, 235, 59, 0.15); /* 반투명 옐로우 */
+    color: var(--accent-color); 
+    text-align: left;
+    padding: 6px 10px; /* 패딩 증가 */
+    font-size: 10px; /* 폰트 크기 증가 */
+    font-weight: 500;
+    line-height: 1.4;
+    border-bottom: 2px solid rgba(255, 235, 59, 0.3);
+    white-space: normal; 
+}
+.data-table .top-notice-mark {
+    color: var(--accent-red); /* 네온 마젠타 */
+    font-weight: 900;
+    margin-right: 5px;
+}
+
+/* 상단 데이터 헤더 */
+.data-table .top-data-header td {
+    background: var(--table-header-bg); 
+    color: var(--table-header-text); 
+    font-weight: 600;
+    height: 25px; /* 높이 조정 */
+    border-bottom: 2px solid #1e5a8c;
+    width: 20%; 
+}
+
+/* 상단 데이터 행 */
+.data-table .top-data-row td {
+    height: 25px; /* 높이 조정 */
+}
+.data-table .top-data-row td:nth-child(3),
+.data-table .top-data-row td:nth-child(4) {
+    color: #00bcd4; /* Cyan 강조 */
     font-weight: 700;
 }
-.region-label {
-    bottom: 8px; right: 8px;
-    background-color: rgba(0, 0, 0, 0.7);
-    color: #eee;
-    padding: 3px 6px;
-    border-radius: 4px;
-    font-size: 0.7em;
+
+/* 중간 제목/공지 셀 */
+.data-table .middle-notice-row td {
+    background: rgba(255, 235, 59, 0.1); /* 더 투명하게 */
+    color: #B3E5FC; /* Light Blue */
+    text-align: left;
+    padding: 8px 10px; /* 패딩 증가 */
+    font-size: 10px;
+    line-height: 1.5; 
+    white-space: normal; 
+    border-top: 2px solid rgba(255, 255, 255, 0.2);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
 }
 
-/* 하단 메뉴 */
-.bottom-nav { 
-    background-color: #222; 
-    border-top: 1px solid #383838; 
-    padding: 10px 0; 
-    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.4); 
+/* 하단 데이터 헤더 */
+.data-table .bottom-data-header td {
+    background: var(--table-header-bg); 
+    color: var(--table-header-text); 
+    font-weight: 600;
+    font-size: 12px; /* 폰트 크기 조정 */
+    /* CSS에서 기본 높이 조정 (JavaScript가 덮어씀) */
+    height: 20px; 
+    padding-top: 0px; 
+    padding-bottom: 0px; 
+    line-height: 1; 
+    width: 20%; 
 }
-.nav-item.active { 
-    color: var(--color-accent-gold); 
-    font-weight: 700; 
+.data-table .bottom-data-header {
+    height: 20px; 
+}
+
+
+/* 하단 데이터 행 */
+.data-table .bottom-data-row td {
+    font-weight: 700;
+    font-size: 12px; /* 폰트 크기 조정 */
+    /* CSS에서 기본 높이 조정 (JavaScript가 덮어씀) */
+    height: 20px; 
+    padding-top: 0px; 
+    padding-bottom: 0px; 
+    line-height: 1.2; 
+}
+.data-table .bottom-data-row {
+    height: 20px; 
+}
+.data-table .bottom-data-row .red-text {
+    color: var(--accent-red); /* 네온 마젠타 강조 */
+    text-shadow: 0 0 3px rgba(255, 0, 119, 0.5);
+}
+
+/* --- 설정 패널 스타일 --- */
+.setting-panel{
+    background: var(--main-bg-color); /* Dark Blue Panel */
+    backdrop-filter: blur(10px); /* 더 강한 블러 */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    /* 나머지 스타일 유지 */
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    width: 250px;
+    padding: 15px;
+    border-radius: 8px;
+    color: white;
+    z-index: 100; 
+    font-size: 12px;
+}
+.setting-panel h3{
+    color: var(--accent-color);
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 5px;
+}
+.color-palette {
+    /* 스타일 유지 */
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1); 
+    margin-bottom: 10px; 
+}
+.color-swatch {
+    /* 스타일 유지 */
+    width: 20px;
+    height: 20px;
+    border: 1px solid #fff;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+.download-button {
+    background-color: #00BCD4; /* Cyan Blue */
+    width: 100%;
+    padding: 10px;
+    margin-top: 15px;
+    color: black;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+.download-button:hover {
+    background-color: #008ba3;
+    color: white;
+}
+.height-apply-btn {
+    background: #4CAF50; /* Green apply button */
+}
+.height-apply-btn:hover {
+    background: #388E3C;
+}
+
+/* --- 열/행 크기 조절 (Resizer) 스타일 --- */
+.data-table td {
+    position: relative;
+}
+
+/* 리사이저 스타일 유지 */
+.col-resizer {
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 100%;
+    width: 5px;
+    cursor: col-resize;
+    z-index: 5;
+}
+.row-resizer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    cursor: row-resize;
+    z-index: 5;
+}
+
+/* 🚀 [추가] 크기 표시기 스타일 */
+.resizer-display {
+    position: fixed;
+    background: var(--accent-color);
+    color: black;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    pointer-events: none;
+    z-index: 200;
+    opacity: 0;
+    transition: opacity 0.1s;
 }
