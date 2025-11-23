@@ -9,6 +9,7 @@
     
 </head>
 <body>
+
 <div class="setting-panel" id="settingPanel">
     
     <div style="color: #ffdd66; margin-top: 5px; margin-bottom: 10px;">
@@ -36,22 +37,21 @@
         <h3>📐 그룹별 행 높이 (px)</h3>
         
         <label for="topRowHeightInput" style="display: block; margin-top: 5px;">상단 데이터 행 높이:</label>
-        <input type="number" id="topRowHeightInput" min="15" max="60" value="25" style="width: 50px; color: black;">
+        <input type="number" id="topRowHeightInput" min="15" max="60" value="15" style="width: 50px; color: black;">
         <button id="applyTopRowHeightBtn" class="height-apply-btn" data-target="top-data" style="margin-left: 5px;">적용</button>
 
         <label for="middleRowHeightInput" style="display: block; margin-top: 5px;">중단 공지/제목 행 높이:</label>
-        <input type="number" id="middleRowHeightInput" min="20" max="100" value="40" style="width: 50px; color: black;">
+        <input type="number" id="middleRowHeightInput" min="20" max="100" value="30" style="width: 50px; color: black;">
         <button id="applyMiddleRowHeightBtn" class="height-apply-btn" data-target="middle-notice" style="margin-left: 5px;">적용</button>
 
         <label for="bottomRowHeightInput" style="display: block; margin-top: 5px;">하단 데이터 행 높이:</label>
-        <input type="number" id="bottomRowHeightInput" min="10" max="60" value="20" style="width: 50px; color: black;">
+        <input type="number" id="bottomRowHeightInput" min="10" max="60" value="15" style="width: 50px; color: black;">
         <button id="applyBottomRowHeightBtn" class="height-apply-btn" data-target="bottom-data" style="margin-left: 5px;">적용</button>
     </div>
     <button class="download-button">
         🖼️ 테이블 영역 이미지 다운로드 (PNG)
     </button>
 </div>
-
 
 <div class="wrap" id="capture-area"> 
 
@@ -136,12 +136,6 @@
                 </td>
             </tr>
 
-            <tr class="bottom-title-row">
-                <td colspan="5" contenteditable="true" style="text-align: left; padding-left: 10px;">
-                    ▶ 추가 메모 공간: 이 행은 하단 테이블의 제목 또는 추가 안내 사항을 적는 데 사용됩니다.
-                </td>
-            </tr>
-
             <tr class="bottom-data-header">
                 <td class="w-20" contenteditable="true">주문유형</td>
                 <td class="w-20" contenteditable="true">주문상세</td>
@@ -174,48 +168,6 @@
             <tr class="bottom-data-row">
                 <td contenteditable="true">D</td>
                 <td contenteditable="true">[2종택1]</td>
-                <td contenteditable="true">0</td>
-                <td contenteditable="true">0</td>
-                <td contenteditable="true" class="red-text">0%</td>
-            </tr>
-            <tr class="bottom-data-row">
-                <td contenteditable="true">E</td>
-                <td contenteditable="true">[3종택1]</td>
-                <td contenteditable="true">3,000,000</td>
-                <td contenteditable="true">3,300,000</td>
-                <td contenteditable="true">100%</td>
-            </tr>
-            <tr class="bottom-data-row">
-                <td contenteditable="true">F</td>
-                <td contenteditable="true">[3종택1]</td>
-                <td contenteditable="true">0</td>
-                <td contenteditable="true">0</td>
-                <td contenteditable="true" class="red-text">0%</td>
-            </tr>
-            <tr class="bottom-data-row">
-                <td contenteditable="true">G</td>
-                <td contenteditable="true">[4종택1]</td>
-                <td contenteditable="true">5,000,000</td>
-                <td contenteditable="true">5,500,000</td>
-                <td contenteditable="true">100%</td>
-            </tr>
-            <tr class="bottom-data-row">
-                <td contenteditable="true">H</td>
-                <td contenteditable="true">[4종택1]</td>
-                <td contenteditable="true">0</td>
-                <td contenteditable="true">0</td>
-                <td contenteditable="true" class="red-text">0%</td>
-            </tr>
-            <tr class="bottom-data-row">
-                <td contenteditable="true">I</td>
-                <td contenteditable="true">[5종택1]</td>
-                <td contenteditable="true">8,000,000</td>
-                <td contenteditable="true">8,800,000</td>
-                <td contenteditable="true">100%</td>
-            </tr>
-            <tr class="bottom-data-row">
-                <td contenteditable="true">J</td>
-                <td contenteditable="true">[5종택1]</td>
                 <td contenteditable="true">0</td>
                 <td contenteditable="true">0</td>
                 <td contenteditable="true" class="red-text">0%</td>
