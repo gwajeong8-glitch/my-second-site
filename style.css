@@ -26,11 +26,11 @@ body {
     overflow: hidden; 
 }
 .wrap {
-    /* 래퍼 (캡처 대상 영역) */
-    width:1024px;
-    height:490px;
-    margin:20px auto 0 auto; 
-    position:relative;
+    /* 래퍼 (캡처 대상 영역) - 캡처 스크립트와 동일한 1036px로 설정 */
+    width: 1036px;
+    height: 490px;
+    margin: 20px auto 0 auto; 
+    position: relative;
     overflow: hidden;
     background-color: transparent; 
 }
@@ -170,7 +170,7 @@ body {
     color: var(--table-header-text); 
     font-weight: 700;
     font-size: 14px;
-    /* 💡 높이 강제 축소 규칙 (JavaScript로 높이 조절 가능하도록 !important 제거) */
+    /* 💡 높이 강제 축소 규칙 (JavaScript로 높이 조절 가능하도록) */
     height: 10px; 
     padding-top: 0px; 
     padding-bottom: 0px; 
@@ -186,7 +186,7 @@ body {
 .data-table .bottom-data-row td {
     font-weight: 700;
     font-size: 14px;
-    /* 💡 높이 강제 축소 규칙 (JavaScript로 높이 조절 가능하도록 !important 제거) */
+    /* 💡 높이 강제 축소 규칙 (JavaScript로 높이 조절 가능하도록) */
     height: 10px; 
     padding-top: 0px; 
     padding-bottom: 0px; 
