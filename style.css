@@ -15,10 +15,14 @@
 }
 
 /* 🎨 Body 및 Global Styles */
+/* 🎨 Body 및 Global Styles */
 body {
-    /* 🚀 배경 이미지를 vip2.jpg로 변경하고, 중앙 하단에 고정 */
+    /* 🚀 'vip2.jpg' 파일명은 그대로 유지합니다. */
     background: url('vip2.jpg') no-repeat center 100px fixed; 
-    background-size: cover; 
+    
+    /* 👇 이 부분을 수정합니다. */
+    background-size: auto; 
+    
     margin: 0;
     padding: 0;
     font-family: 'Segoe UI', Arial, sans-serif;
