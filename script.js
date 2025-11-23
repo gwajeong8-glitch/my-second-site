@@ -335,18 +335,28 @@ function handleApplyFontSize() {
 }
 
 
-// --- 2. 🖼️ 이미지 다운로드 기능 ---
+// --- 2. 🖼️ 이미지 다운로드 기능 (배경 포함 캡처 로직으로 수정) ---
 function downloadImage(elementId, filename) {
-    const element = document.getElementById(elementId);
+    // 💡 배경 이미지를 캡처하기 위해 캡처 대상을 <body> 전체로 설정합니다.
+    const element = document.body; 
     const settingPanel = document.getElementById('settingPanel');
+    
+    // 캡처 전 설정 패널을 잠시 숨김
     if (settingPanel) settingPanel.style.display = 'none';
 
     html2canvas(element, {
         scale: 2,
-        backgroundColor: null,
-        useCORS: true
+        // backgroundColor: null을 제거하면 body의 배경색/이미지를 캡처합니다.
+        // 여기서는 명시적으로 null을 유지하여 body의 배경을 포함하되, html2canvas가 body를 캡처할 때 배경을 유지하도록 유도합니다.
+        backgroundColor: null, 
+        useCORS: true,
+        // 설정 패널 및 리사이저 UI는 캡처에서 제외
+        ignoreElements: (el) => {
+            return el.id === 'settingPanel' || el.classList.contains('resizer-display') || el.classList.contains('left-menu') || el.classList.contains('download-button');
+        }
     }).then(canvas => {
-        if (settingPanel) settingPanel.style.display = 'block';
+        // 캡처 후 설정 패널 다시 표시
+        if (settingPanel) settingPanel.style.display = 'block'; 
 
         const dataURL = canvas.toDataURL('image/png');
         const link = document.createElement('a');
@@ -355,6 +365,7 @@ function downloadImage(elementId, filename) {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+
     }).catch(error => {
         console.error('이미지 캡처 중 오류 발생:', error);
         if (settingPanel) settingPanel.style.display = 'block';
@@ -551,7 +562,7 @@ function handleApplyBottomRowHeight() {
     saveSettings();
 }
 
-// --- 6. 💡 [추가된 핵심 로직] 빈 공간 클릭 시 테이블 선택 해제 ---
+// --- 6. 💡 빈 공간 클릭 시 테이블 선택 해제 로직 ---
 
 document.addEventListener('click', function(e) {
     // 테이블, 설정 패널, 왼쪽 메뉴 엘리먼트가 존재하는지 확인
@@ -595,6 +606,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const downloadButton = document.querySelector('.download-button');
     if (downloadButton) {
         downloadButton.removeEventListener('click', downloadImage);
-        downloadButton.addEventListener('click', () => downloadImage('capture-area', 'noblesse_data_capture.png'));
+        // 다운로드 함수를 호출할 때 캡처 대상을 'body'로 변경 (기존 'capture-area' 대신)
+        downloadButton.addEventListener('click', () => downloadImage('body', 'noblesse_data_capture.png'));
     }
 });
