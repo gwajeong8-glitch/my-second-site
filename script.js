@@ -335,13 +335,19 @@ function handleApplyFontSize() {
 }
 
 
-// --- 2. 🖼️ 이미지 다운로드 기능 (배경 포함 캡처 로직으로 수정) ---
+// --- 2. 🖼️ 이미지 다운로드 기능 (1036x490 영역 캡처에 맞게 수정) ---
 function downloadImage(elementId, filename) {
-    // 💡 배경 이미지를 캡처하기 위해 캡처 대상을 <body> 전체로 설정합니다.
-    const element = document.body; 
+    // 💡 캡처 대상을 '#capture-area'로 지정
+    const element = document.getElementById(elementId);
     const settingPanel = document.getElementById('settingPanel');
-    const leftMenuElement = document.querySelector('.left-menu'); // 왼쪽 메뉴도 변수로 가져옴
+    const leftMenuElement = document.querySelector('.left-menu'); 
     
+    if (!element) {
+        console.error("캡처 대상인 '#capture-area' 요소를 찾을 수 없습니다.");
+        alert("테이블 영역을 찾을 수 없습니다.");
+        return;
+    }
+
     // 캡처 전 설정 패널 및 왼쪽 메뉴를 잠시 숨김
     if (settingPanel) settingPanel.style.display = 'none';
     if (leftMenuElement) leftMenuElement.style.display = 'none';
@@ -350,13 +356,18 @@ function downloadImage(elementId, filename) {
     setTimeout(() => {
         html2canvas(element, {
             scale: 2,
-            // 💡 배경 이미지가 로드되지 않으면 흰색(#ffffff)으로 채웁니다. (투명 방지)
+            // 💡 캡처 영역이 <body> 배경을 포함하지 않으므로 흰색으로 채웁니다. (투명 방지)
             backgroundColor: '#ffffff', 
-            useCORS: true, // CORS 문제 해결 시도
+            useCORS: true, 
             // 💡 캡처에서 제외할 요소들
             ignoreElements: (el) => {
+                // '#capture-area' 내부 요소만 캡처하도록 설정하지만, 
+                // 혹시 모를 상황을 대비해 UI 요소도 제외
                 return el.id === 'settingPanel' || el.classList.contains('resizer-display') || el.classList.contains('left-menu') || el.classList.contains('download-button');
-            }
+            },
+            // 캡처할 영역의 크기를 직접 지정 (CSS와 일치해야 함)
+            width: 1036,
+            height: 490
         }).then(canvas => {
             // 캡처 후 설정 패널 및 왼쪽 메뉴 다시 표시
             if (settingPanel) settingPanel.style.display = 'block'; 
@@ -375,9 +386,9 @@ function downloadImage(elementId, filename) {
             // 오류 발생 시에도 설정 패널 및 왼쪽 메뉴 다시 표시
             if (settingPanel) settingPanel.style.display = 'block'; 
             if (leftMenuElement) leftMenuElement.style.display = 'block'; 
-            alert('이미지 캡처 중 오류가 발생했습니다. (배경 이미지 로드 문제 가능성)');
+            alert('이미지 캡처 중 오류가 발생했습니다. (이미지 로드 문제 가능성)');
         });
-    }, 100); // 0.1초 지연 후 캡처 시도
+    }, 100); 
 }
 
 
@@ -614,7 +625,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const downloadButton = document.querySelector('.download-button');
     if (downloadButton) {
         downloadButton.removeEventListener('click', downloadImage);
-        // 다운로드 함수를 호출할 때 캡처 대상을 'body'로 변경 (기존 'capture-area' 대신)
-        downloadButton.addEventListener('click', () => downloadImage('body', 'noblesse_data_capture.png'));
+        // 캡처 대상을 'capture-area'로 다시 설정
+        downloadButton.addEventListener('click', () => downloadImage('capture-area', 'noblesse_data_capture.png'));
     }
 });
