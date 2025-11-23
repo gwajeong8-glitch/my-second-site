@@ -340,36 +340,44 @@ function downloadImage(elementId, filename) {
     // 💡 배경 이미지를 캡처하기 위해 캡처 대상을 <body> 전체로 설정합니다.
     const element = document.body; 
     const settingPanel = document.getElementById('settingPanel');
+    const leftMenuElement = document.querySelector('.left-menu'); // 왼쪽 메뉴도 변수로 가져옴
     
-    // 캡처 전 설정 패널을 잠시 숨김
+    // 캡처 전 설정 패널 및 왼쪽 메뉴를 잠시 숨김
     if (settingPanel) settingPanel.style.display = 'none';
+    if (leftMenuElement) leftMenuElement.style.display = 'none';
 
-    html2canvas(element, {
-        scale: 2,
-        // backgroundColor: null을 제거하면 body의 배경색/이미지를 캡처합니다.
-        // 여기서는 명시적으로 null을 유지하여 body의 배경을 포함하되, html2canvas가 body를 캡처할 때 배경을 유지하도록 유도합니다.
-        backgroundColor: null, 
-        useCORS: true,
-        // 설정 패널 및 리사이저 UI는 캡처에서 제외
-        ignoreElements: (el) => {
-            return el.id === 'settingPanel' || el.classList.contains('resizer-display') || el.classList.contains('left-menu') || el.classList.contains('download-button');
-        }
-    }).then(canvas => {
-        // 캡처 후 설정 패널 다시 표시
-        if (settingPanel) settingPanel.style.display = 'block'; 
+    // 💡 캡처 전에 혹시 모를 로딩 지연을 위해 잠시 기다립니다.
+    setTimeout(() => {
+        html2canvas(element, {
+            scale: 2,
+            // 💡 배경 이미지가 로드되지 않으면 흰색(#ffffff)으로 채웁니다. (투명 방지)
+            backgroundColor: '#ffffff', 
+            useCORS: true, // CORS 문제 해결 시도
+            // 💡 캡처에서 제외할 요소들
+            ignoreElements: (el) => {
+                return el.id === 'settingPanel' || el.classList.contains('resizer-display') || el.classList.contains('left-menu') || el.classList.contains('download-button');
+            }
+        }).then(canvas => {
+            // 캡처 후 설정 패널 및 왼쪽 메뉴 다시 표시
+            if (settingPanel) settingPanel.style.display = 'block'; 
+            if (leftMenuElement) leftMenuElement.style.display = 'block'; 
 
-        const dataURL = canvas.toDataURL('image/png');
-        const link = document.createElement('a');
-        link.href = dataURL;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+            const dataURL = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.href = dataURL;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
 
-    }).catch(error => {
-        console.error('이미지 캡처 중 오류 발생:', error);
-        if (settingPanel) settingPanel.style.display = 'block';
-    });
+        }).catch(error => {
+            console.error('이미지 캡처 중 오류 발생:', error);
+            // 오류 발생 시에도 설정 패널 및 왼쪽 메뉴 다시 표시
+            if (settingPanel) settingPanel.style.display = 'block'; 
+            if (leftMenuElement) leftMenuElement.style.display = 'block'; 
+            alert('이미지 캡처 중 오류가 발생했습니다. (배경 이미지 로드 문제 가능성)');
+        });
+    }, 100); // 0.1초 지연 후 캡처 시도
 }
 
 
