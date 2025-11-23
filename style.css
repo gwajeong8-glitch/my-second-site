@@ -17,7 +17,7 @@
 /* 🎨 Body 및 Global Styles */
 body {
     /* 배경 이미지와 원본 사이즈 설정 유지 */
-    background: url('vip2.jpg') no-repeat center center fixed; /* 위치를 center center로 조정 */
+    background: url('vip.jpg') no-repeat center center fixed; /* 위치를 center center로 조정 */
     background-size: auto; 
     margin: 0;
     padding: 0;
