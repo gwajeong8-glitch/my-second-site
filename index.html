@@ -19,11 +19,12 @@
         }
         
         .wrap {
-            /* 🚀 [수정] 배경 위치를 'top center'로 명확히 지정 */
-            background: url('vip.png') no-repeat top center; /*
-            background-size: contain; /* 크기에 맞게 배경 이미지가 축소되도록 설정 */
-            background-color: transparent; /* 배경색 투명 유지 */
-        }
+            /* 🚀 [추가 및 수정] 상단에 여백(padding)을 주어 테이블 내용을 배경 장식 아래로 내림 */
+            background: url('vip.png') no-repeat top center; 
+            background-size: contain; 
+            background-color: transparent; 
+            padding-top: 100px; /* ⬅️ 이 부분을 추가하여 내용을 아래로 100px 내립니다. */
+            box-sizing: border-box; /* 패딩이 전체 크기에 포함되도록 설정 */
         
         .setting-panel {
             background: rgba(0, 0, 0, 0.7); 
