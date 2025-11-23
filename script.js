@@ -24,13 +24,15 @@ const applyMiddleRowHeightBtn = document.getElementById('applyMiddleRowHeightBtn
 const applyBottomRowHeightBtn = document.getElementById('applyBottomRowHeightBtn');
 
 const resizerDisplay = document.getElementById('resizerDisplay');
+const settingPanel = document.getElementById('settingPanel');
+const leftMenu = document.querySelector('.left-menu');
 
 
 // 💡 드래그 선택을 위한 변수 추가
 let isDragging = false;
 let startCell = null; // 드래그 시작 셀
 let endCell = null; // 드래그 종료 셀
-let selectionBox = null; // 드래그 영역을 시각적으로 표시할 요소 (옵션)
+let selectionBox = null; // 드래그 영역을 시각적으로 표시할 요소
 
 
 // 🚀 LocalStorage에 테이블 내용을 저장하는 함수
@@ -98,7 +100,7 @@ function initializeColorTargetControl() {
 
 // 팔레트 생성 (색상 스와치 화면에 표시)
 function initializeColorPalette() {
-    if (colorPalette.children.length > 0) return;
+    if (colorPalette && colorPalette.children.length > 0) return;
 
     colors.forEach(color => {
         const swatch = document.createElement('div');
@@ -109,31 +111,23 @@ function initializeColorPalette() {
             applyColor(color);
             saveSettings();
         });
-        colorPalette.appendChild(swatch);
+        if(colorPalette) colorPalette.appendChild(swatch);
     });
 }
 
 
 // --- 드래그 선택 로직 구현 ---
 
-/**
- * 주어진 두 셀을 포함하는 직사각형 영역 내의 모든 셀에 'selected' 클래스를 적용합니다.
- * @param {HTMLElement} startCell - 드래그 시작 셀
- * @param {HTMLElement} endCell - 드래그 종료 셀
- */
 function selectCellsInDragArea(startCell, endCell) {
-    if (!startCell || !endCell) return;
+    if (!startCell || !endCell || !dataTable) return;
 
     // 테이블 전체 셀 목록을 가져옵니다.
-    const allCells = Array.from(dataTable.querySelectorAll('td'));
     const rows = Array.from(dataTable.querySelectorAll('tr'));
 
-    // 셀의 행/열 인덱스를 찾는 헬퍼 함수
     const getCellIndices = (cell) => {
         const row = cell.parentElement;
         if (!row) return null;
         const rowIndex = rows.indexOf(row);
-        // colspan이 있는 셀은 제외하고 계산해야 하지만, 간단한 구현을 위해 cell.cellIndex 사용 (일반적인 테이블 구조 가정)
         const cellIndex = Array.from(row.children).indexOf(cell);
         return { rowIndex, cellIndex };
     };
@@ -143,24 +137,20 @@ function selectCellsInDragArea(startCell, endCell) {
 
     if (!start || !end) return;
 
-    // 선택 영역의 최소/최대 행/열 인덱스 계산
     const minRow = Math.min(start.rowIndex, end.rowIndex);
     const maxRow = Math.max(start.rowIndex, end.rowIndex);
     const minCol = Math.min(start.cellIndex, end.cellIndex);
     const maxCol = Math.max(start.cellIndex, end.cellIndex);
 
-    // 모든 셀의 선택을 해제합니다. (Shift 키를 누르지 않고 드래그 시작 시)
-    // 드래그가 시작될 때 이미 해제되었어야 하지만, 안전을 위해 다시 확인
+    // 드래그 시작 시 기존 선택 해제 (Shift 키를 누르지 않은 경우)
     if (!window.event.shiftKey) {
         document.querySelectorAll('.data-table td.selected').forEach(c => c.classList.remove('selected'));
     }
 
-    // 선택 영역에 포함되는 셀을 찾아 'selected' 클래스를 추가합니다.
     rows.forEach((row, rIndex) => {
         if (rIndex >= minRow && rIndex <= maxRow) {
             Array.from(row.children).forEach((cell, cIndex) => {
                 if (cIndex >= minCol && cIndex <= maxCol) {
-                    // 크기 조절 요소에 가려지지 않도록 TD 요소 자체인지 확인
                     if (cell.tagName === 'TD') {
                         cell.classList.add('selected');
                     }
@@ -171,12 +161,11 @@ function selectCellsInDragArea(startCell, endCell) {
 }
 
 function handleDragStart(e) {
-    // 🖱️ 왼쪽 메뉴나 설정 패널을 클릭한 경우에는 드래그 방지
-    if (!e.target.closest('.data-table') || e.target.closest('.resizer-display') || e.target.closest('.col-resizer') || e.target.closest('.row-resizer')) return;
+    // 🖱️ 리사이저, 왼쪽 메뉴, 설정 패널 클릭 시 드래그 방지
+    if (!e.target.closest('.data-table') || e.target.closest('.resizer-display') || e.target.closest('.col-resizer') || e.target.closest('.row-resizer') || e.target.closest('.left-menu') || e.target.closest('.setting-panel')) return;
 
-    // 💡 셀 내용 편집 모드에서는 드래그 선택 방지 (텍스트 선택이 우선되어야 함)
+    // 💡 셀 내용 편집 모드에서는 드래그 선택 방지 (텍스트 선택 우선)
     if (e.target.closest('td') && e.target.closest('td').getAttribute('contenteditable') === 'true') {
-        // 셀 내용이 이미 선택되어 있다면 텍스트 드래그를 허용
         const selection = window.getSelection();
         if (selection.toString().length > 0) return;
     }
@@ -191,6 +180,10 @@ function handleDragStart(e) {
     }
 
     startCell = e.target.closest('td');
+    if (!startCell) {
+        isDragging = false;
+        return;
+    }
 
     // 드래그 선택 시각적 요소 생성 (선택 사항)
     if (!selectionBox) {
@@ -198,13 +191,12 @@ function handleDragStart(e) {
         selectionBox.style.position = 'absolute';
         selectionBox.style.border = '1px dashed #FFD700';
         selectionBox.style.backgroundColor = 'rgba(255, 215, 0, 0.1)';
-        selectionBox.style.pointerEvents = 'none'; // 마우스 이벤트를 통과시켜 셀을 선택할 수 있도록
+        selectionBox.style.pointerEvents = 'none'; 
         selectionBox.style.zIndex = '10';
         document.body.appendChild(selectionBox);
     }
     selectionBox.style.display = 'block';
 
-    // 드래그 선택 초기 위치 설정 (dataTable 기준으로)
     const tableRect = dataTable.getBoundingClientRect();
     const cellRect = startCell.getBoundingClientRect();
 
@@ -225,7 +217,6 @@ function handleDragging(e) {
 
     if (cellUnderMouse && cellUnderMouse !== endCell) {
         endCell = cellUnderMouse;
-        // 선택 영역에 포함된 셀에 클래스 적용
         selectCellsInDragArea(startCell, endCell);
     }
 
@@ -234,7 +225,7 @@ function handleDragging(e) {
         const startRect = startCell.getBoundingClientRect();
         const endRect = endCell.getBoundingClientRect();
         const tableRect = dataTable.getBoundingClientRect();
-        const wrapOffsetLeft = dataTable.parentElement.offsetLeft; // .wrap의 offset
+        const wrapOffsetLeft = dataTable.parentElement.offsetLeft; 
         const wrapOffsetTop = dataTable.parentElement.offsetTop;
 
         const left = Math.min(startRect.left, endRect.left);
@@ -264,7 +255,6 @@ function handleDragEnd() {
     document.removeEventListener('mousemove', handleDragging);
     document.removeEventListener('mouseup', handleDragEnd);
 
-    // 드래그 종료 후 최종 상태 저장
     saveSettings();
 }
 
@@ -274,7 +264,7 @@ function initializeCellInteraction() {
         // 기존 리스너 제거
         dataTable.removeEventListener('click', handleCellClick);
         dataTable.removeEventListener('input', saveSettings);
-        dataTable.removeEventListener('mousedown', handleDragStart); // 드래그 시작 이벤트 제거
+        dataTable.removeEventListener('mousedown', handleDragStart); 
 
     }
 
@@ -308,7 +298,6 @@ function initializeCellInteraction() {
 
     // 🚀 드래그 이벤트 리스너 추가 (dataTable 전체)
     dataTable.addEventListener('mousedown', handleDragStart);
-    // mousemove, mouseup은 handleDragStart에서 동적으로 추가/제거됩니다.
 }
 
 // 🚀 색상 적용 함수
@@ -346,18 +335,18 @@ function handleApplyFontSize() {
 }
 
 
-// --- 2. 🖼️ 이미지 다운로드 기능 (변경 없음) ---
+// --- 2. 🖼️ 이미지 다운로드 기능 ---
 function downloadImage(elementId, filename) {
     const element = document.getElementById(elementId);
     const settingPanel = document.getElementById('settingPanel');
-    settingPanel.style.display = 'none';
+    if (settingPanel) settingPanel.style.display = 'none';
 
     html2canvas(element, {
         scale: 2,
         backgroundColor: null,
         useCORS: true
     }).then(canvas => {
-        settingPanel.style.display = 'block';
+        if (settingPanel) settingPanel.style.display = 'block';
 
         const dataURL = canvas.toDataURL('image/png');
         const link = document.createElement('a');
@@ -368,12 +357,12 @@ function downloadImage(elementId, filename) {
         document.body.removeChild(link);
     }).catch(error => {
         console.error('이미지 캡처 중 오류 발생:', error);
-        settingPanel.style.display = 'block';
+        if (settingPanel) settingPanel.style.display = 'block';
     });
 }
 
 
-// --- 3. 📐 셀 크기 조절 (Resizer) 로직 (변경 없음) ---
+// --- 3. 📐 셀 크기 조절 (Resizer) 로직 ---
 let currentResizer = null;
 let startX = 0;
 let startY = 0;
@@ -381,7 +370,6 @@ let startWidth = 0;
 let startHeight = 0;
 let isRowResizer = false;
 
-// 초기화: 각 셀에 리사이저 추가
 function initializeResizers() {
     document.querySelectorAll('.col-resizer, .row-resizer').forEach(r => r.remove());
 
@@ -472,7 +460,7 @@ function handleResize(e) {
 
 function stopResize() {
     currentResizer = null;
-    dataTable.classList.remove('resizing');
+    if (dataTable) dataTable.classList.remove('resizing');
 
     if (resizerDisplay) resizerDisplay.style.opacity = 0;
 
@@ -483,7 +471,7 @@ function stopResize() {
 }
 
 
-// --- 4. 🖱️ 왼쪽 메뉴 항목 색상 토글 기능 (변경 없음) ---
+// --- 4. 🖱️ 왼쪽 메뉴 항목 색상 토글 기능 ---
 function initializeLeftMenu() {
     const leftMenuItems = document.querySelectorAll('.left-item');
 
@@ -508,7 +496,7 @@ function initializeLeftMenu() {
 }
 
 
-// 🚀 특정 행 선택자에 강제 높이 스타일을 적용하는 함수 (변경 없음)
+// 🚀 특정 행 선택자에 강제 높이 스타일을 적용하는 함수
 function applyRowHeight(selector, newHeight) {
     document.querySelectorAll(selector).forEach(row => {
         row.style.height = newHeight;
@@ -520,7 +508,7 @@ function applyRowHeight(selector, newHeight) {
 }
 
 
-// --- 5. 📏 그룹별 행 높이 조절 기능 (변경 없음) ---
+// --- 5. 📏 그룹별 행 높이 조절 기능 ---
 function initializeRowHeightControl() {
 
     if (applyTopRowHeightBtn && topRowHeightInput) {
@@ -563,6 +551,29 @@ function handleApplyBottomRowHeight() {
     saveSettings();
 }
 
+// --- 6. 💡 [추가된 핵심 로직] 빈 공간 클릭 시 테이블 선택 해제 ---
+
+document.addEventListener('click', function(e) {
+    // 테이블, 설정 패널, 왼쪽 메뉴 엘리먼트가 존재하는지 확인
+    if (!dataTable || !settingPanel || !leftMenu) return; 
+
+    // 1. 클릭된 요소가 테이블, 설정 패널, 왼쪽 메뉴 중 하나에 포함되는지 확인합니다.
+    const isClickInsideTable = dataTable.contains(e.target);
+    const isClickInsideSettingPanel = settingPanel.contains(e.target);
+    const isClickInsideLeftMenu = leftMenu.contains(e.target);
+    
+    // 클릭된 위치가 세 영역 모두에 속하지 않는다면 ('빈 공간'이라면)
+    if (!isClickInsideTable && !isClickInsideSettingPanel && !isClickInsideLeftMenu) {
+        // 현재 선택된 셀을 찾아서 .selected 클래스를 제거합니다.
+        const selectedCell = document.querySelector('.data-table td.selected');
+        if (selectedCell) {
+            selectedCell.classList.remove('selected');
+            // 선택 해제 후 저장합니다.
+            saveSettings();
+        }
+    }
+});
+
 
 // 페이지 로드 시 기능 초기화
 document.addEventListener('DOMContentLoaded', () => {
@@ -581,6 +592,9 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeRowHeightControl();
 
     // 다운로드 버튼에 이벤트 핸들러 할당
-    document.querySelector('.download-button').removeEventListener('click', downloadImage);
-    document.querySelector('.download-button').addEventListener('click', () => downloadImage('capture-area', 'noblesse_data_capture.png'));
+    const downloadButton = document.querySelector('.download-button');
+    if (downloadButton) {
+        downloadButton.removeEventListener('click', downloadImage);
+        downloadButton.addEventListener('click', () => downloadImage('capture-area', 'noblesse_data_capture.png'));
+    }
 });
