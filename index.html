@@ -1,1016 +1,203 @@
 <!DOCTYPE html>
-
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Noblesse 데이터 테이블 에디터</title>
-    <!-- Tailwind CSS (Aesthetics and responsiveness) -->
+    <title>노블레스 데이터 현황</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- html2canvas for image download -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <style>
-        /* CSS Variables */
-        :root{
-            /* 기본값 (테이블 기본 스타일 유지) */
-            --table-header-bg: #2196F3;
-            --table-header-text: #ffffff;
-            --table-row-bg: #1B5E20; /* 녹색 행 배경 */
-            --table-row-text: #C8F7DC; /* 밝은 녹색 행 글자 */
-            --table-border: rgba(255,255,255,0.15);
-            
-            /* 고정 색상 */
-            --yellow-bg: #FFD700;
-            --dark-text: #1A1A1A;
-            --red-highlight: #FF0000; 
-            
-            --col-num-text-color: var(--red-highlight); 
-        }
-
-        /* 🎨 Body 및 Global Styles */
-        body {
-            /* 🚀 배경 이미지 위치 조정 (200px 아래로) */
-            /* ⚠️ 주: vip.png 파일이 없으므로, 기본 배경색으로 대체하거나 placeholder 이미지를 사용할 수 있지만, 원본 요청을 따릅니다. */
-            background: url('https://placehold.co/1920x1080/000000/ffffff?text=Background+Image+Placeholder') no-repeat center 0px fixed; 
-            background-size: cover; /* 반응형 대응 */
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', Arial, sans-serif;
-            color: white;
-            /* overflow-x: hidden; */ /* x축 스크롤은 허용하지 않음 */
-        }
-        .wrap {
-            /* 래퍼 (캡처 대상 영역) */
-            width: min(100%, 1024px); /* 반응형 대응 */
-            max-width: 1024px;
-            height: 490px;
-            margin: 20px auto 0 auto; 
-            position: relative;
-            overflow: hidden;
-            background-color: transparent; 
-        }
-
-        /* 상단 탭 */
-        .top-sub-menu{
-            position: absolute;
-            top: 30px;
-            left: 50%;
-            transform: translateX(-50%); /* 중앙 정렬 */
-            display: flex;
-            gap: 20px;
-            z-index: 5;
-            flex-wrap: wrap; /* 모바일 대응 */
-            justify-content: center;
-        }
-        .top-sub-menu .menu{
-            background: rgba(160,160,160,0.3);
-            padding: 8px 15px;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-
-        /* 왼쪽 메뉴 */
-        .left-menu{
-            position: absolute;
-            left: 50px;
-            top: 100px;
-            width: 115px;
-            line-height: 16px;
-            font-size: 13px;
-            z-index: 5;
-        }
-        /* 모바일에서 왼쪽 메뉴 숨김 */
-        @media (max-width: 1023px) {
-            .left-menu {
-                display: none;
-            }
-        }
-        .left-item{
-            padding: 1px 0;
-            cursor: pointer;
-            transition: 0.15s;
-        }
-        .left-item:hover {
-            color: #FFDD66;
-        }
-        .left-item.active{
-            color: #ffdd66;
-            font-weight: 700;
-            text-shadow: 0 0 6px #ffdd66;
-        }
-
-        /* 📊 테이블 스타일 */
-        .data-table{
-            position: absolute;
-            top: 80px;
-            left: 175px; /* 왼쪽 메뉴 공간 확보 */
-            width: 730px; 
-            border-collapse: collapse;
-            font-size: 8px;
-            z-index: 4;
-            overflow: hidden;
-            box-shadow: 0 2px 0 rgba(0,0,0,0.35);
-        }
-        /* 모바일 대응: 테이블 중앙 정렬 및 크기 조정 */
-        @media (max-width: 1023px) {
-            .data-table {
-                left: 50%;
-                transform: translateX(-50%);
-                width: 95%; /* 뷰포트 대비 95% */
-            }
-        }
-
-        /* 테이블 셀 기본 스타일 */
-        .data-table td{
-            background: var(--table-row-bg); 
-            color: var(--table-row-text); 
-            padding: 2px 2px; 
-            min-height: 16px;
-            text-align: center;
-            border-bottom: 1px solid var(--table-border);
-            border-right: 1px solid var(--table-border);
-            white-space: nowrap;
-            outline: none; 
-            box-sizing: border-box; /* 패딩이 너비에 포함되도록 설정 */
-            user-select: none; /* 드래그 방지 */
-        }
-
-        /* 마지막 셀의 오른쪽 경계선 제거 */
-        .data-table tr td:last-child {
-            border-right: none;
-        }
-
-        /* 활성 셀(td) 스타일: 클릭 시 테두리로 강조 */
-        /* JS에서 캡처 전/후에 .selected 클래스를 토글하기 때문에 캡처 시 노란색 테두리는 나타나지 않습니다. */
-        .data-table td.selected {
-            outline: 2px solid #FFD700; 
-            outline-offset: -2px;
-            cursor: pointer;
-        }
-
-        /* 호버 시 배경색 수정 (인라인 스타일이 없는 경우에만 적용) */
-        .data-table tr:hover td:not([style*="background-color"]):not([data-bg-color]){
-            background: #567d58; 
-        }
-
-        /* 상단 공지 통합 셀 */
-        .data-table .top-notice-row td {
-            background: var(--yellow-bg); 
-            color: var(--dark-text); 
-            text-align: left;
-            padding: 1px 4px; 
-            font-size: 8px;
-            font-weight: 700;
-            line-height: 1.2;
-            border-bottom: 2px solid var(--table-border);
-            white-space: normal; 
-        }
-        .data-table .top-notice-mark {
-            color: var(--red-highlight); 
-            font-weight: 900;
-            margin-right: 2px;
-        }
-
-        /* 상단 데이터 헤더 */
-        .data-table .top-data-header td {
-            background: var(--table-header-bg); 
-            color: var(--table-header-text); 
-            font-weight: 700;
-            height: 15px; 
-            /* width: 20%; 이 스타일은 리사이징 방해 가능성이 있어 제거하거나 최소화합니다. */
-        }
-
-        /* 상단 데이터 행 */
-        .data-table .top-data-row td {
-            height: 15px; 
-        }
-        .data-table .top-data-row td:nth-child(3),
-        .data-table .top-data-row td:nth-child(4) {
-            color: var(--col-num-text-color); 
-            font-weight: 700;
-        }
-
-        /* 중간 제목/공지 셀 */
-        .data-table .middle-notice-row td {
-            background: var(--yellow-bg); 
-            color: var(--dark-text); 
-            text-align: left;
-            padding: 4px 6px; 
-            font-size: 8px;
-            line-height: 1.3; 
-            white-space: normal; 
-            border-bottom: 2px solid var(--table-border);
-        }
-
-        /* 하단 데이터 헤더 */
-        .data-table .bottom-data-header td {
-            background: var(--table-header-bg); 
-            color: var(--table-header-text); 
-            font-weight: 700;
-            font-size: 14px;
-            height: 10px; 
-            padding-top: 0px; 
-            padding-bottom: 0px; 
-            line-height: 1; 
-            /* width: 20%; */
-        }
-        .data-table .bottom-data-header {
-            height: 10px; 
-        }
-
-
-        /* 하단 데이터 행 */
-        .data-table .bottom-data-row td {
-            font-weight: 700;
-            font-size: 14px;
-            height: 10px; 
-            padding-top: 0px; 
-            padding-bottom: 0px; 
-            line-height: 1; 
-        }
-        .data-table .bottom-data-row {
-            height: 10px; 
-        }
-        .data-table .bottom-data-row .red-text {
-            color: var(--col-num-text-color); 
-        }
-
-        /* --- 설정 패널 스타일 --- */
-        .setting-panel{
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            width: 250px;
-            padding: 15px;
-            border: 1px solid #333;
-            border-radius: 8px;
-            color: white;
-            z-index: 100; 
-            font-size: 12px;
-            background: rgba(0, 0, 0, 0.7); 
-            backdrop-filter: blur(5px);
-            max-height: 95vh;
-            overflow-y: auto;
-        }
-        /* 모바일 대응: 설정 패널을 하단에 배치 */
-        @media (max-width: 600px) {
-            .setting-panel {
-                top: auto;
-                bottom: 0;
-                right: 0;
-                left: 0;
-                width: 100%;
-                border-radius: 8px 8px 0 0;
-            }
-        }
-
-        .setting-panel h3{
-            margin-top: 10px;
-            margin-bottom: 10px;
-            font-size: 14px;
-            border-bottom: 1px solid #333;
-            padding-bottom: 5px;
-        }
-        .color-palette {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
-            padding: 5px 0;
-            border-bottom: 1px solid #333; 
-            margin-bottom: 10px; 
-        }
-        .color-swatch {
-            width: 20px;
-            height: 20px;
-            border: 1px solid #fff;
-            cursor: pointer;
-            transition: transform 0.1s;
-        }
-        .color-swatch:hover {
-            transform: scale(1.1);
-            z-index: 101;
-            box-shadow: 0 0 5px white;
-        }
-        .download-button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 15px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background-color 0.2s;
-        }
-        .download-button:hover {
-            background-color: #0056b3;
-        }
-        .height-apply-btn {
-            padding: 3px 8px; 
-            background: #007bff; 
-            color: white; 
-            border: none; 
-            border-radius: 3px; 
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        .height-apply-btn:hover {
-            background: #0056b3;
-        }
-
-        /* --- 열/행 크기 조절 (Resizer) 스타일 --- */
-        .data-table td {
-            position: relative;
-        }
-
-        /* 열 크기 조절 커서 변경 */
-        .col-resizer {
-            position: absolute;
-            right: 0;
-            top: 0;
-            height: 100%;
-            width: 5px;
-            cursor: col-resize;
-            z-index: 5;
-        }
-
-        /* 행 크기 조절 커서 변경 */
-        .row-resizer {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 5px;
-            cursor: row-resize;
-            z-index: 5;
-        }
-
-        /* 🚀 [추가] 크기 표시기 스타일 */
-        .resizer-display {
-            position: fixed;
-            background: rgba(255, 255, 255, 0.9);
-            color: black;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            pointer-events: none;
-            z-index: 200;
-            opacity: 0;
-            transition: opacity 0.1s;
-        }
-    </style>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    
+    <link rel="stylesheet" href="style.css"> 
 </head>
-<body class="bg-gray-900">
+<body>
 
-    <!-- 캡처 대상 영역 -->
-    <div id="capture-area" class="wrap shadow-2xl">
-
-        <!-- 상단 서브 메뉴 -->
-        <div class="top-sub-menu">
-            <div class="menu text-gray-300">노블레스 서버</div>
-            <div class="menu text-gray-300">길드명: GM</div>
-            <div class="menu text-gray-300">월드: 14</div>
-        </div>
-        
-        <!-- 왼쪽 메뉴 (데이터 타입) -->
-        <div class="left-menu">
-            <div class="left-item active">레벨</div>
-            <div class="left-item">누적</div>
-            <div class="left-item">상태</div>
-            <div class="left-item">장비</div>
-            <div class="left-item">스킬</div>
-            <div class="left-item">퀘스트</div>
-            <div class="left-item">명성</div>
-        </div>
-
-        <!-- 📊 데이터 테이블 -->
-        <table class="data-table">
-            <tbody>
-                <!-- 최상단 공지 통합 셀 -->
-                <tr class="top-notice-row">
-                    <td colspan="5">
-                        <span class="top-notice-mark">[필독]</span> 모든 데이터는 실시간으로 변경될 수 있으며, 이 표는 편집용 템플릿입니다.
-                    </td>
-                </tr>
-
-                <!-- 상단 데이터 헤더 -->
-                <tr class="top-data-header">
-                    <td>등급</td>
-                    <td>이름</td>
-                    <td>공격력</td>
-                    <td>방어력</td>
-                    <td>특성</td>
-                </tr>
-
-                <!-- 상단 데이터 행 1 -->
-                <tr class="top-data-row">
-                    <td contenteditable="true">SSR</td>
-                    <td contenteditable="true">제갈량</td>
-                    <td contenteditable="true">99,999</td>
-                    <td contenteditable="true">10,000</td>
-                    <td contenteditable="true">지능형</td>
-                </tr>
-                <!-- 상단 데이터 행 2 -->
-                <tr class="top-data-row">
-                    <td contenteditable="true">SR</td>
-                    <td contenteditable="true">관우</td>
-                    <td contenteditable="true">85,000</td>
-                    <td contenteditable="true">15,000</td>
-                    <td contenteditable="true">근력형</td>
-                </tr>
-                <!-- 상단 데이터 행 3 -->
-                <tr class="top-data-row">
-                    <td contenteditable="true">R</td>
-                    <td contenteditable="true">장비</td>
-                    <td contenteditable="true">70,000</td>
-                    <td contenteditable="true">20,000</td>
-                    <td contenteditable="true">체력형</td>
-                </tr>
-
-                <!-- 중간 공지 통합 셀 -->
-                <tr class="middle-notice-row">
-                    <td colspan="5" contenteditable="true">
-                        <span class="font-bold text-red-500">※ 중요 공지:</span> 이번 시즌의 승급 조건이 대폭 상향되었습니다. 상세 조건은 공지 게시판을 확인하세요.
-                    </td>
-                </tr>
-
-                <!-- 하단 데이터 헤더 -->
-                <tr class="bottom-data-header">
-                    <td>월간 랭킹</td>
-                    <td>주간 랭킹</td>
-                    <td>최대 딜량</td>
-                    <td>평균 딜량</td>
-                    <td>평가</td>
-                </tr>
-
-                <!-- 하단 데이터 행 1 -->
-                <tr class="bottom-data-row">
-                    <td contenteditable="true">1위</td>
-                    <td contenteditable="true">3위</td>
-                    <td contenteditable="true" class="red-text">15,000M</td>
-                    <td contenteditable="true">12,500M</td>
-                    <td contenteditable="true">매우 우수</td>
-                </tr>
-                <!-- 하단 데이터 행 2 -->
-                <tr class="bottom-data-row">
-                    <td contenteditable="true">5위</td>
-                    <td contenteditable="true">8위</td>
-                    <td contenteditable="true" class="red-text">9,000M</td>
-                    <td contenteditable="true">7,500M</td>
-                    <td contenteditable="true">우수</td>
-                </tr>
-                <!-- 하단 데이터 행 3 -->
-                <tr class="bottom-data-row">
-                    <td contenteditable="true">12위</td>
-                    <td contenteditable="true">20위</td>
-                    <td contenteditable="true" class="red-text">6,000M</td>
-                    <td contenteditable="true">5,500M</td>
-                    <td contenteditable="true">보통</td>
-                </tr>
-            </tbody>
-        </table>
-
+<div class="setting-panel" id="settingPanel">
+    
+    <div style="color: #ffdd66; margin-top: 5px; margin-bottom: 10px; font-weight: bold;">
+        ※ 사용법: 테이블 셀을 드래그하여 선택한 후, 아래 옵션을 클릭하면 적용됩니다.
     </div>
-    <!-- 캡처 대상 영역 끝 -->
-
-    <!-- --- 설정 패널 (UI) --- -->
-    <div id="settingPanel" class="setting-panel">
-        <h2 class="text-lg font-bold mb-3 text-center">🎨 데이터 편집 도구</h2>
-
-        <!-- 색상 조절 -->
-        <h3>색상 조절 (Text / BG)</h3>
-        <div class="mb-3">
-            <label class="mr-3">
-                <input type="radio" name="colorTarget" value="text" checked> 텍스트
-            </label>
-            <label>
-                <input type="radio" name="colorTarget" value="background"> 배경
-            </label>
-        </div>
-        <div class="color-palette">
-            <!-- Swatches generated by JS -->
-        </div>
-
-        <!-- 글꼴 크기 조절 -->
-        <h3>글꼴 크기 (px)</h3>
-        <div class="flex gap-2 items-center mb-4">
-            <input type="number" id="fontSizeInput" value="14" min="8" max="40" 
-                   class="w-16 p-1 text-sm text-gray-800 border rounded">
-            <button id="applyFontSizeBtn" class="height-apply-btn">적용</button>
-        </div>
-
-        <!-- 그룹별 높이 조절 -->
-        <h3>그룹별 행 높이 (px)</h3>
-        <div class="space-y-2">
-            <div class="flex justify-between items-center">
-                <span>상단 데이터 (Header & Row):</span>
-                <input type="number" id="topRowHeightInput" value="15" min="10" max="50" class="w-14 p-1 text-sm text-gray-800 border rounded">
-                <button id="applyTopRowHeightBtn" class="height-apply-btn">적용</button>
-            </div>
-            <div class="flex justify-between items-center">
-                <span>중간 공지 (Notice):</span>
-                <input type="number" id="middleRowHeightInput" value="25" min="10" max="50" class="w-14 p-1 text-sm text-gray-800 border rounded">
-                <button id="applyMiddleRowHeightBtn" class="height-apply-btn">적용</button>
-            </div>
-            <div class="flex justify-between items-center">
-                <span>하단 데이터 (Header & Row):</span>
-                <input type="number" id="bottomRowHeightInput" value="10" min="10" max="50" class="w-14 p-1 text-sm text-gray-800 border rounded">
-                <button id="applyBottomRowHeightBtn" class="height-apply-btn">적용</button>
-            </div>
-        </div>
-
-        <!-- 이미지 다운로드 버튼 -->
-        <button class="download-button shadow-lg">PNG 이미지로 다운로드</button>
-        <p class="text-xs text-center mt-2 text-gray-400">Ctrl/Shift + Click으로 다중 선택 가능</p>
+    
+    <div class="color-target-control">
+        <label><input type="radio" name="colorTarget" value="text" checked> 글자색 적용</label>
+        <label><input type="radio" name="colorTarget" value="background"> 배경색 적용</label>
     </div>
-    <!-- --- 설정 패널 끝 --- -->
+    
+    <div class="color-control">
+        <h3>🎨 색상 팔레트 선택 (40색)</h3>
+        <div class="color-palette" id="colorPaletteContainer">
+            </div>
+    </div>
+    
+    <div style="margin-top: 10px; padding-top: 15px; border-top: 1px solid #444;">
+        <label for="fontSizeInput">글꼴 크기 (px): </label>
+        <input type="number" id="fontSizeInput" min="8" max="48" value="14" style="width: 60px; margin-left: 5px; padding: 5px; color: black; border-radius: 3px; border: none;">
+        <button id="applyFontSizeBtn" style="margin-left: 5px; padding: 5px 12px; background: #555; color: white; border: none; border-radius: 3px; cursor: pointer; transition: background 0.2s;">적용</button>
+    </div>
+    
+    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #444;">
+       <h3>📐 그룹별 행 높이 (px)</h3>
 
-    <!-- 크기 조절 디스플레이 -->
-    <div id="resizerDisplay" class="resizer-display"></div>
+<!-- 상단 데이터 -->
+<div style="margin-bottom: 10px;">
+    <label for="topRowHeightInput" style="display: block; margin-bottom: 5px;">상단 데이터 행 높이:</label>
+    <input type="number" id="topRowHeightInput" min="10" max="100" value="15" style="width: 60px; padding: 5px; color: black; border-radius: 3px; border: none;">
+    <button id="applyTopRowHeightBtn" class="height-apply-btn" data-target="top-data" style="margin-left: 5px; padding: 5px 12px; background: #555; color: white; border: none; border-radius: 3px; cursor: pointer;">적용</button>
+</div>
 
+<!-- 중단 공지/제목 -->
+<div style="margin-bottom: 10px;">
+    <label for="middleNoticeRowHeightInput" style="display: block; margin-bottom: 5px;">중단 공지/제목 행 높이:</label>
+    <input type="number" id="middleNoticeRowHeightInput" min="20" max="200" value="30" style="width: 60px; padding: 5px; color: black; border-radius: 3px; border: none;">
+    <button id="applyMiddleNoticeRowHeightBtn" class="height-apply-btn" data-target="middle-notice" style="margin-left: 5px; padding: 5px 12px; background: #555; color: white; border: none; border-radius: 3px; cursor: pointer;">적용</button>
+</div>
 
-    <script>
-        // --- 1. 색상 팔레트 및 편집 기능 변수 설정 ---
+<!-- 하단 데이터 -->
+<div style="margin-bottom: 10px;">
+    <label for="bottomRowHeightInput" style="display: block; margin-bottom: 5px;">하단 데이터 행 높이:</label>
+    <input type="number" id="bottomRowHeightInput" min="10" max="100" value="15" style="width: 60px; padding: 5px; color: black; border-radius: 3px; border: none;">
+    <button id="applyBottomRowHeightBtn" class="height-apply-btn" data-target="bottom-data" style="margin-left: 5px; padding: 5px 12px; background: #555; color: white; border: none; border-radius: 3px; cursor: pointer;">적용</button>
+</div>
 
-        const colors = [
-            '#FF0000', '#FF4500', '#FFA500', '#FFFF00', '#ADFF2F', '#00FF00', '#3CB371', '#00FFFF',
-            '#1E90FF', '#0000FF', '#8A2BE2', '#9400D3', '#FF00FF', '#FF69B4', '#FFC0CB', '#FFFFFF',
-            '#CCCCCC', '#999999', '#666666', '#333333', '#000000', 
-            '#800000', '#8B4513', '#D2B48C', '#F5DEB3', '#9ACD32', '#556B2F', '#008080', '#4682B4',
-            '#4169E1', '#800080', '#DDA0DD', '#F08080', '#2F4F4F', '#A9A9A9', '#778899', '#C0C0C0', 
-            '#228B22', '#CD5C5C', '#6A5ACD' 
-        ];
+<!-- 🔥 최상단 헤더 -->
+<div style="margin-bottom: 10px; margin-top: 10px;">
+    <label for="headerRowHeightInput" style="display: block; margin-bottom: 5px;">최상단 헤더 행 높이:</label>
+    <input type="number" id="headerRowHeightInput" min="10" max="200" value="40" style="width: 60px; padding: 5px; color: black; border-radius: 3px; border: none;">
+    <button id="applyHeaderRowHeightBtn" style="margin-left: 5px; padding: 5px 12px; background: #555; color: white; border: none; border-radius: 3px; cursor: pointer;">적용</button>
+</div>
 
-        const colorPalette = document.querySelector('.color-palette');
-        // dataTable은 DOMContentLoaded 이후에 다시 할당될 수 있음
-        let dataTable = document.querySelector('.data-table');
-        const applyFontSizeBtn = document.getElementById('applyFontSizeBtn');
-        const fontSizeInput = document.getElementById('fontSizeInput');
+    <button class="download-button" id="downloadBtn">
+        🖼️ 테이블 영역 이미지 다운로드 (PNG)
+    </button>
+</div>
 
-        // 📐 그룹별 높이 입력 필드 변수
-        const topRowHeightInput = document.getElementById('topRowHeightInput');
-        const middleRowHeightInput = document.getElementById('middleRowHeightInput');
-        const bottomRowHeightInput = document.getElementById('bottomRowHeightInput');
-        // 📐 그룹별 적용 버튼 변수
-        const applyTopRowHeightBtn = document.getElementById('applyTopRowHeightBtn');
-        const applyMiddleRowHeightBtn = document.getElementById('applyMiddleRowHeightBtn');
-        const applyBottomRowHeightBtn = document.getElementById('applyBottomRowHeightBtn');
+<div class="wrap">
+    <div id="selectionBox"></div>
 
-        const resizerDisplay = document.getElementById('resizerDisplay'); 
+    <div class="top-sub-menu">
+        <div class="menu">블레스 전국 프레스티지 서비스</div>
+        <div class="menu">VIP 회원 전용 통합 매니지먼트</div>
+        <div class="menu">노블레스 회원 전용룸</div>
+    </div>
+    
+    <div class="left-menu">
+        <div class="left-item active">메인 화면</div>
+        <div class="left-item">[매칭/고객 상태]</div>
+        <div class="left-item">주문 상태</div>
+        <div class="left-item">인증 상태</div>
+        <div class="left-item">[상담/문의]</div>
+        <div class="left-item">직무 문의</div>
+        <div class="left-item">전국 만남</div>
+        <div class="left-item">[관리/데이터]</div>
+        <div class="left-item">실시간 데이터</div>
+        <div class="left-item">실시간 오류</div>
+        <div class="left-item">데이터 분석</div>
+        <div class="left-item">포인트 조회</div>
+        <div class="left-item">유흥 관리</div>
+        <div class="left-item">회원 관리</div>
+        <div class="left-item">회원 승인</div>
+        <div class="left-item">회원 탈퇴</div>
+        <div class="left-item">담당 실장</div>
+    </div>
 
-
-        // 🚀 LocalStorage에 테이블 내용을 저장하는 함수
-        function saveSettings() {
-            const captureArea = document.getElementById('capture-area');
-            if (captureArea) {
-                // 테이블 내용 전체 저장
-                localStorage.setItem('noblesseTableState', captureArea.innerHTML);
-                
-                // 📐 세 가지 높이 입력값 모두 저장
-                if (topRowHeightInput) localStorage.setItem('topRowHeightValue', topRowHeightInput.value);
-                if (middleRowHeightInput) localStorage.setItem('middleRowHeightValue', middleRowHeightInput.value); 
-                if (bottomRowHeightInput) localStorage.setItem('bottomRowHeightValue', bottomRowHeightInput.value);
-
-                // 🎨 현재 선택된 색상 타겟도 저장
-                const colorTarget = document.querySelector('input[name="colorTarget"]:checked');
-                if (colorTarget) localStorage.setItem('colorTarget', colorTarget.value);
-                
-                // 🖱️ 현재 활성화된 왼쪽 메뉴도 저장 (클래스를 문자열로 저장)
-                const activeMenuItem = document.querySelector('.left-item.active');
-                if (activeMenuItem) {
-                    const index = Array.from(document.querySelectorAll('.left-item')).indexOf(activeMenuItem);
-                    localStorage.setItem('activeLeftMenuIndex', index.toString());
-                }
-            }
-        }
-
-        // 🚀 LocalStorage에서 저장된 내용을 불러와 적용하는 함수
-        function loadSettings() {
-            const savedState = localStorage.getItem('noblesseTableState');
-            if (savedState) {
-                const captureArea = document.getElementById('capture-area');
-                if (captureArea) {
-                    // 저장된 HTML 상태로 DOM을 변경
-                    captureArea.innerHTML = savedState;
-                    
-                    // dataTable 변수를 새로 로드된 DOM 요소로 업데이트
-                    dataTable = document.querySelector('.data-table');
-                    
-                    // 📐 세 가지 높이 입력값 로드
-                    const savedTopHeight = localStorage.getItem('topRowHeightValue');
-                    const savedMiddleHeight = localStorage.getItem('middleRowHeightValue');
-                    const savedBottomHeight = localStorage.getItem('bottomRowHeightValue');
-
-                    if (topRowHeightInput && savedTopHeight) {
-                        topRowHeightInput.value = savedTopHeight;
-                    }
-                    if (middleRowHeightInput && savedMiddleHeight) {
-                        middleRowHeightInput.value = savedMiddleHeight;
-                    }
-                    if (bottomRowHeightInput && savedBottomHeight) {
-                        bottomRowHeightInput.value = savedBottomHeight;
-                    }
-                    
-                    // 🎨 저장된 색상 타겟 로드
-                    const savedColorTarget = localStorage.getItem('colorTarget') || 'text';
-                    const targetInput = document.querySelector(`input[name="colorTarget"][value="${savedColorTarget}"]`);
-                    if(targetInput) targetInput.checked = true;
-                    
-                    // 🖱️ 글꼴 크기 로드는 셀 상의 인라인 스타일을 따름
-                    const savedFontSize = document.querySelector('.data-table td')?.style.fontSize;
-                    if (fontSizeInput && savedFontSize) {
-                        fontSizeInput.value = parseInt(savedFontSize, 10) || 14;
-                    }
-
-                    console.log('이전 설정이 성공적으로 로드되었습니다. (Local Storage)');
-                }
-            }
-        }
-
-        // 🎨 색상 타겟 변경 이벤트 리스너 추가
-        function initializeColorTargetControl() {
-            document.querySelectorAll('input[name="colorTarget"]').forEach(radio => {
-                radio.addEventListener('change', saveSettings); // 선택이 변경될 때마다 저장
-            });
-        }
-
-        // 팔레트 생성 (색상 스와치 화면에 표시)
-        function initializeColorPalette() {
-            // 팔레트가 이미 생성되어 있다면 중복 방지
-            if (colorPalette && colorPalette.children.length > 0) return;
+    <table class="data-table" id="capture-area">
+        <tbody>
+            <tr class="top-notice-row">
+                <td colspan="5" contenteditable="true"> 
+                    <span class="top-notice-mark">DAMAGE!</span> 주의사항 4단계에서 일치 파트너십으로 통합된 유형만을 선택하여 공유 임무를 완료하며 함께 할때의 금일 결제 금액 후 공동 이익을 마감해야 합니다!
+                </td>
+            </tr>
             
-            colors.forEach(color => {
-                const swatch = document.createElement('div');
-                swatch.className = 'color-swatch';
-                swatch.style.backgroundColor = color;
-                swatch.dataset.color = color;
-                // 클릭 시 색상 적용 및 저장
-                swatch.addEventListener('click', () => {
-                    applyColor(color);
-                    saveSettings();
-                }); 
-                if (colorPalette) {
-                    colorPalette.appendChild(swatch);
-                }
-            });
-        }
-
-
-        // 💡 셀 클릭 이벤트: Shift 키를 사용하여 다중 선택/토글 기능을 활성화
-        function initializeCellInteraction() {
-            // 기존 dataTable 이벤트 리스너가 있다면 제거 후 다시 등록 (loadSettings 때문에)
-            if (dataTable) {
-                dataTable.removeEventListener('click', handleCellClick);
-                dataTable.removeEventListener('input', saveSettings); 
-            }
+            <tr class="top-data-header">
+                <td contenteditable="true">회원ID</td>
+                <td contenteditable="true">주문상태</td>
+                <td contenteditable="true">인증상태</td> 
+                <td contenteditable="true">활성화 코드</td> 
+                <td contenteditable="true">승인된 암호 코드</td> 
+            </tr>
             
-            // 로드된 새로운 DOM에서 dataTable 변수 재할당
-            dataTable = document.querySelector('.data-table');
-            if (!dataTable) return;
-
-            function handleCellClick(e) {
-                if (e.target.tagName === 'TD') {
-                    const cell = e.target;
-                    
-                    // 크기 조절 중에는 셀 선택을 막음
-                    if (dataTable.classList.contains('resizing')) return;
-
-                    if (e.shiftKey) {
-                        // Shift 키를 누른 경우: 기존 선택 상태를 유지하고 현재 셀의 선택 상태를 토글합니다.
-                        cell.classList.toggle('selected');
-                    } else {
-                        // Shift 키를 누르지 않은 경우: 기존 선택 모두 해제 후 현재 셀만 선택합니다.
-                        document.querySelectorAll('.data-table td.selected').forEach(c => c.classList.remove('selected'));
-                        cell.classList.add('selected');
-                    }
-                }
-            }
+            <tr class="top-data-row">
+                <td contenteditable="true">jkgov1203</td>
+                <td contenteditable="true">발송 완료</td>
+                <td contenteditable="true">승인 완료</td>
+                <td contenteditable="true">NSACT2032897</td>
+                <td contenteditable="true">NBS001001001</td> 
+            </tr>
+            <tr class="top-data-row">
+                <td contenteditable="true">sxcv4752</td>
+                <td contenteditable="true">검수 대기</td>
+                <td contenteditable="true">미승인</td>
+                <td contenteditable="true">NSACT2032898</td>
+                <td contenteditable="true">NBS001001002</td> 
+            </tr>
+            <tr class="top-data-row">
+                <td contenteditable="true">qwerty24689</td>
+                <td contenteditable="true">진행 중</td>
+                <td contenteditable="true">승인 완료</td>
+                <td contenteditable="true">NSACT2032899</td>
+                <td contenteditable="true">NBS001001003</td> 
+            </tr>
+            <tr class="top-data-row">
+                <td contenteditable="true">xsgf1575</td>
+                <td contenteditable="true">발송 오류</td>
+                <td contenteditable="true">비활성화</td>
+                <td contenteditable="true">NSACT2032891</td>
+                <td contenteditable="true">NBS001001004</td> 
+            </tr>
             
-            dataTable.addEventListener('click', handleCellClick);
-            
-            // 셀 내용 편집 이벤트: 입력이 끝날 때마다 저장
-            dataTable.addEventListener('input', (e) => {
-                if (e.target.tagName === 'TD' && e.target.contentEditable === 'true') {
-                    saveSettings();
-                }
-            });
+            <tr class="middle-notice-row">
+                <td colspan="5" contenteditable="true"> 
+                    1. 위 공동구매 회원들이 클리어 데이터를 지시에 따라 진행하지 못하여 실패로 인해 회원가입 및 계정 비활성화되어 출금불가 <br>
+                    2. 상호협력의 발전목적을 실천하기 위해 공식적으로 1~2회 연속 클리어수정을 특별히 승인하였으며, 수정주문은 만장일치로 합의되어야 합니다.<br>
+                    3. 수정주문은 계좌와 계좌 이상 데이터 복구 후 출금 코드를 매니저 갱신을 완료해야 출금가능하며 데이터 완료 이전에는 현금 출금이 불가능합니다<br>
+                    4.정산시스템에서 승인할 수 없어 출금할수 없게 되었습니다. 데이터 완료 이전에는 현금 출금이 불가능합니다.<br>
+                    (예: 부활 포기한 계정의 경우 포인트출금 불가)
+                </td>
+            </tr>
 
-        }
+            <tr class="bottom-data-header">
+                <td class="w-20" contenteditable="true">주문유형</td>
+                <td class="w-20" contenteditable="true">주문상세</td>
+                <td contenteditable="true">투자금액 (원)</td>
+                <td contenteditable="true">원금+수익금액</td>
+                <td contenteditable="true">보장비율</td>
+            </tr>
 
-        // 🚀 색상 적용 함수
-        function applyColor(color) {
-            const targetRadio = document.querySelector('input[name="colorTarget"]:checked');
-            if (!targetRadio) return; 
+            <tr class="bottom-data-row">
+                <td contenteditable="true">A</td>
+                <td contenteditable="true">[2종택1]</td>
+                <td contenteditable="true" style="color: #FF0000;">1,500,000</td>
+                <td contenteditable="true">1,650,000</td>
+                <td contenteditable="true" style="color: #FF0000;">0%</td>
+            </tr>
+            <tr class="bottom-data-row">
+                <td contenteditable="true">B</td>
+                <td contenteditable="true">[2종택1]</td>
+                <td contenteditable="true">2,500,000</td>
+                <td contenteditable="true">2,750,000</td>
+                <td contenteditable="true">100%</td>
+            </tr>
+            <tr class="bottom-data-row">
+                <td contenteditable="true">C</td>
+                <td contenteditable="true">[2종택1]</td>
+                <td contenteditable="true">0</td>
+                <td contenteditable="true">0</td>
+                <td contenteditable="true" style="color: #FF0000;">0%</td>
+            </tr>
+            <tr class="bottom-data-row">
+                <td contenteditable="true">D</td>
+                <td contenteditable="true">[2종택1]</td>
+                <td contenteditable="true">0</td>
+                <td contenteditable="true">0</td>
+                <td contenteditable="true" style="color: #FF0000;">0%</td>
+            </tr>
 
-            const target = targetRadio.value; 
-            
-            // DOM에서 '.selected' 클래스를 가진 모든 TD를 다시 조회
-            const cellsToApply = document.querySelectorAll('.data-table td.selected');
+        </tbody>
+    </table>
+</div>
 
-            cellsToApply.forEach(cell => {
-                if (target === 'background') {
-                    cell.style.backgroundColor = color;
-                    // 배경색이 적용될 경우, 호버 스타일을 오버라이드하기 위해 인라인 스타일을 적용합니다.
-                    cell.dataset.bgColor = color; 
-                } else { // target === 'text'
-                    cell.style.color = color;
-                }
-            });
-        }
+<div class="resizer-display" id="resizerDisplay"></div>
 
-
-        // 📏 글꼴 크기 적용 함수
-        function initializeFontSizeControl() {
-            if (applyFontSizeBtn) {
-                applyFontSizeBtn.removeEventListener('click', handleApplyFontSize);
-                applyFontSizeBtn.addEventListener('click', handleApplyFontSize);
-            }
-        }
-
-        function handleApplyFontSize() {
-            if (!fontSizeInput.value) return;
-
-            const newSize = fontSizeInput.value + 'px';
-            document.querySelectorAll('.data-table td.selected').forEach(cell => {
-                cell.style.fontSize = newSize;
-                cell.style.lineHeight = '1.2'; 
-            });
-            saveSettings();
-        }
-
-
-        // --- 2. 🖼️ 이미지 다운로드 기능 (수정됨: 캡처 전에 선택 상태 제거) ---
-        function downloadImage(elementId, filename) {
-            const element = document.getElementById(elementId);
-            const settingPanel = document.getElementById('settingPanel');
-            
-            // 1. 현재 선택된 셀을 저장합니다.
-            const selectedCells = document.querySelectorAll('.data-table td.selected');
-            
-            // 2. 캡처 전에 모든 선택된 셀의 하이라이트(노란색 테두리)를 제거합니다.
-            selectedCells.forEach(cell => cell.classList.remove('selected'));
-            
-            // 3. 설정 패널 숨기기
-            if (settingPanel) settingPanel.style.display = 'none';
-
-            html2canvas(element, {
-                scale: 2, 
-                backgroundColor: null, 
-                useCORS: true 
-            }).then(canvas => {
-                // 4. 캡처 완료 후: 설정 패널 다시 표시
-                if (settingPanel) settingPanel.style.display = 'block';
-
-                // 5. 선택 상태 복원
-                selectedCells.forEach(cell => cell.classList.add('selected'));
-
-                const dataURL = canvas.toDataURL('image/png');
-                const link = document.createElement('a');
-                link.href = dataURL;
-                link.download = filename;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            }).catch(error => {
-                console.error('이미지 캡처 중 오류 발생:', error);
-                // 6. 오류 발생 시에도 설정 패널 다시 표시 및 선택 상태 복원
-                if (settingPanel) settingPanel.style.display = 'block'; 
-                selectedCells.forEach(cell => cell.classList.add('selected'));
-            });
-        }
-
-
-        // --- 3. 📐 셀 크기 조절 (Resizer) 로직 --- 
-        let currentResizer = null; 
-        let startX = 0;
-        let startY = 0;
-        let startWidth = 0;
-        let startHeight = 0;
-        let isRowResizer = false;
-
-        // 초기화: 각 셀에 리사이저 추가
-        function initializeResizers() {
-            // DOM이 변경되었으므로, 기존 리사이저를 제거하고 새로 추가
-            document.querySelectorAll('.col-resizer, .row-resizer').forEach(r => r.remove());
-
-            // dataTable을 새로 로드된 DOM에서 다시 참조
-            dataTable = document.querySelector('.data-table');
-            if (!dataTable) return;
-            
-            dataTable.querySelectorAll('tr:not(.middle-notice-row, .top-notice-row) td').forEach(td => {
-                
-                // 열 리사이저 (td.nextElementSibling이 있는 경우에만 추가)
-                if (td.nextElementSibling) {
-                    let colResizer = document.createElement('div');
-                    colResizer.className = 'col-resizer';
-                    td.appendChild(colResizer);
-                    colResizer.addEventListener('mousedown', startResize);
-                }
-
-                // 행 리사이저
-                const tr = td.parentElement;
-                // top-notice-row처럼 colspan이 있는 셀에도 리사이저가 추가되는 것을 방지
-                if (td.getAttribute('colspan') === null) {
-                    let rowResizer = document.createElement('div');
-                    rowResizer.className = 'row-resizer';
-                    td.appendChild(rowResizer);
-                    rowResizer.addEventListener('mousedown', startResize);
-                }
-            });
-        }
-
-        // 리사이즈 로직
-        function startResize(e) {
-            e.preventDefault(); 
-            
-            currentResizer = e.target;
-            startX = e.clientX;
-            startY = e.clientY;
-            
-            const cell = currentResizer.parentElement;
-            
-            if (currentResizer.classList.contains('col-resizer')) {
-                isRowResizer = false;
-                startWidth = cell.offsetWidth;
-                dataTable.classList.add('resizing');
-                if (resizerDisplay) resizerDisplay.style.opacity = 1;
-            } else if (currentResizer.classList.contains('row-resizer')) {
-                isRowResizer = true;
-                startHeight = cell.offsetHeight;
-                dataTable.classList.add('resizing');
-                if (resizerDisplay) resizerDisplay.style.opacity = 1;
-            }
-            
-            document.addEventListener('mousemove', handleResize);
-            document.addEventListener('mouseup', stopResize);
-        }
-
-        function handleResize(e) {
-            if (!currentResizer) return;
-
-            const cell = currentResizer.parentElement;
-            
-            if (!isRowResizer) {
-                const deltaX = e.clientX - startX;
-                const newWidth = startWidth + deltaX;
-                if (newWidth > 30) {
-                    cell.style.width = newWidth + 'px';
-                    cell.style.minWidth = newWidth + 'px';
-                }
-                
-                if (resizerDisplay) {
-                    resizerDisplay.textContent = `${Math.round(newWidth)} px (가로)`;
-                    resizerDisplay.style.left = (e.clientX + 10) + 'px';
-                    resizerDisplay.style.top = (e.clientY + 10) + 'px';
-                }
-
-            } else {
-                const deltaY = e.clientY - startY;
-                const newHeight = startHeight + deltaY;
-                
-                if (newHeight > 20) { 
-                    const row = cell.parentElement;
-                    row.style.height = newHeight + 'px'; 
-                    row.querySelectorAll('td').forEach(td => {
-                        td.style.height = newHeight + 'px';
-                    });
-                }
-                
-                if (resizerDisplay) {
-                    resizerDisplay.textContent = `${Math.round(newHeight)} px (세로)`;
-                    resizerDisplay.style.left = (e.clientX + 10) + 'px';
-                    resizerDisplay.style.top = (e.clientY + 10) + 'px';
-                }
-            }
-        }
-
-        function stopResize() {
-            currentResizer = null;
-            dataTable.classList.remove('resizing');
-            
-            if (resizerDisplay) resizerDisplay.style.opacity = 0; 
-            
-            document.removeEventListener('mousemove', handleResize);
-            document.removeEventListener('mouseup', stopResize);
-            
-            saveSettings(); 
-        }
-
-
-        // --- 4. 🖱️ 왼쪽 메뉴 항목 색상 토글 기능 ---
-        function initializeLeftMenu() {
-            const leftMenuItems = document.querySelectorAll('.left-item');
-            
-            // 저장된 인덱스를 로드하여 활성화
-            const savedIndex = localStorage.getItem('activeLeftMenuIndex');
-            if (savedIndex !== null) {
-                leftMenuItems.forEach(i => i.classList.remove('active'));
-                if (leftMenuItems[parseInt(savedIndex)]) {
-                    leftMenuItems[parseInt(savedIndex)].classList.add('active');
-                }
-            }
-            
-            leftMenuItems.forEach(item => {
-                // 기존 리스너 제거 후 다시 등록
-                item.removeEventListener('click', handleLeftMenuClick);
-                item.addEventListener('click', handleLeftMenuClick);
-            });
-            
-            function handleLeftMenuClick() {
-                leftMenuItems.forEach(i => i.classList.remove('active'));
-                this.classList.add('active');
-                saveSettings(); 
-            }
-        }
-
-
-        // 🚀 특정 행 선택자에 강제 높이 스타일을 적용하는 함수
-        function applyRowHeight(selector, newHeight) {
-            // 인라인 스타일로 적용
-            document.querySelectorAll(selector).forEach(row => {
-                row.style.height = newHeight;
-                row.querySelectorAll('td').forEach(td => {
-                    td.style.height = newHeight;
-                    td.style.lineHeight = '1.2'; // 높이 변경 시 라인 높이 일관성 유지
-                });
-            });
-        }
-
-
-        // --- 5. 📏 그룹별 행 높이 조절 기능 ---
-        function initializeRowHeightControl() {
-            
-            if (applyTopRowHeightBtn && topRowHeightInput) {
-                applyTopRowHeightBtn.removeEventListener('click', handleApplyTopRowHeight);
-                applyTopRowHeightBtn.addEventListener('click', handleApplyTopRowHeight);
-                // 로드 시에도 초기 높이 적용 (loadSettings가 값을 업데이트했을 경우)
-                applyRowHeight('.top-data-header, .top-data-row', topRowHeightInput.value + 'px');
-            }
-
-            if (applyMiddleRowHeightBtn && middleRowHeightInput) {
-                applyMiddleRowHeightBtn.removeEventListener('click', handleApplyMiddleRowHeight);
-                applyMiddleRowHeightBtn.addEventListener('click', handleApplyMiddleRowHeight);
-                // 로드 시에도 초기 높이 적용
-                applyRowHeight('.middle-notice-row', middleRowHeightInput.value + 'px');
-            }
-
-            if (applyBottomRowHeightBtn && bottomRowHeightInput) {
-                applyBottomRowHeightBtn.removeEventListener('click', handleApplyBottomRowHeight);
-                applyBottomRowHeightBtn.addEventListener('click', handleApplyBottomRowHeight);
-                // 로드 시에도 초기 높이 적용
-                applyRowHeight('.bottom-data-header, .bottom-data-row', bottomRowHeightInput.value + 'px');
-            }
-        }
-
-        function handleApplyTopRowHeight() {
-            const newHeightValue = topRowHeightInput.value;
-            const newHeight = newHeightValue + 'px';
-            applyRowHeight('.top-data-header, .top-data-row', newHeight);
-            saveSettings();
-        }
-
-        function handleApplyMiddleRowHeight() {
-            const newHeightValue = middleRowHeightInput.value;
-            const newHeight = newHeightValue + 'px';
-            // middle-title-row가 HTML에 없으므로, middle-notice-row에만 적용
-            applyRowHeight('.middle-notice-row', newHeight); 
-            saveSettings();
-        }
-
-        function handleApplyBottomRowHeight() {
-            const newHeightValue = bottomRowHeightInput.value;
-            const newHeight = newHeightValue + 'px';
-            applyRowHeight('.bottom-data-header, .bottom-data-row', newHeight);
-            saveSettings();
-        }
-
-
-        // 페이지 로드 시 기능 초기화
-        document.addEventListener('DOMContentLoaded', () => {
-            // 1. 색상 팔레트 초기화 (DOM 구조와 무관)
-            initializeColorPalette(); 
-            
-            // 2. 저장된 설정을 먼저 로드하여 DOM 구조와 UI 입력값 복원
-            loadSettings(); 
-            
-            // 3. 로드된 새로운 DOM 구조에 맞춰 모든 이벤트와 리사이저를 초기화
-            //     * 중요: 이 순서대로 실행되어야 DOM 요소에 이벤트 리스너가 정확히 연결됩니다.
-            initializeCellInteraction(); 
-            initializeColorTargetControl(); 
-            initializeFontSizeControl();
-            initializeResizers(); 
-            initializeLeftMenu(); 
-            initializeRowHeightControl(); // UI 입력값을 바탕으로 최종 높이 적용
-
-            // 다운로드 버튼에 이벤트 핸들러 할당
-            const downloadButton = document.querySelector('.download-button');
-            if (downloadButton) {
-                // 기존 리스너가 있다면 제거
-                downloadButton.removeEventListener('click', downloadImage); 
-                downloadButton.addEventListener('click', () => downloadImage('capture-area', 'noblesse_data_capture.png'));
-            }
-        }); 
-    </script>
+<script type="module" src="app.js"></script>
 </body>
 </html>
