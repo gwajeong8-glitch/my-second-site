@@ -7,6 +7,64 @@
     
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     
+    <style>
+        body {
+            /* 🚀 [수정] body에서 배경 이미지 제거 및 기본 스타일만 유지 */
+            background-color: #000; /* 배경색을 검은색으로 설정 */
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            color: white;
+            overflow: hidden; 
+        }
+        
+        .wrap {
+            /* 🚀 [수정] 배경 이미지를 .wrap (capture-area)에 적용 */
+            background: url('vip.png') no-repeat center 0px; 
+            background-size: contain; /* 크기에 맞게 배경 이미지가 축소되도록 설정 */
+            background-color: transparent; /* 배경색 투명 유지 */
+        }
+        
+        .setting-panel {
+            background: rgba(0, 0, 0, 0.7); 
+            backdrop-filter: blur(5px);
+        }
+        
+        /* 💡 높이 강제 축소 규칙 */
+        .bottom-data-header td, .bottom-data-row td {
+            height: 10px; 
+            padding-top: 0px; 
+            padding-bottom: 0px; 
+            font-size: 8px; 
+            line-height: 1; 
+        }
+        .bottom-data-header, .bottom-data-row {
+            height: 10px; 
+        }
+        
+        /* 🚀 크기 표시기 스타일 */
+        .resizer-display {
+            position: fixed;
+            background: rgba(255, 255, 255, 0.9);
+            color: black;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 200;
+            opacity: 0;
+            transition: opacity 0.1s;
+        }
+        /* 📐 그룹별 높이 조절 버튼 스타일 */
+        .height-apply-btn {
+            padding: 3px 8px; 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            border-radius: 3px; 
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
 
@@ -24,7 +82,7 @@
     <div class="color-control">
         <h3>🎨 색상 팔레트 선택 (40색)</h3>
         <div class="color-palette">
-            </div>
+        </div>
     </div>
     
     <div style="margin-top: 10px; padding-top: 5px; border-top: 1px solid #333;">
@@ -125,7 +183,7 @@
                 <td contenteditable="true">NSACT2032891</td>
                 <td contenteditable="true">NBS001001004</td> 
             </tr>
-            
+                        
             <tr class="middle-notice-row">
                 <td colspan="5" contenteditable="true"> 
                     1. 위 공동구매 회원들이 클리어 데이터를 지시에 따라 진행하지 못하여 실패로 인해 회원가입 및 계정 비활성화되어 출금불가 <br>
