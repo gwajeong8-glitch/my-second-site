@@ -16,7 +16,7 @@
 
 /* 🎨 Body 및 Global Styles */
 body {
-    /* 🚀 배경 이미지 위치 조정 (200px 아래로) */
+    /* 배경 이미지를 뷰포트에 고정 */
     background: url('vip.png') no-repeat center 0px fixed; 
     background-size: auto; 
     margin: 0;
@@ -26,7 +26,7 @@ body {
     overflow: hidden; 
 }
 .wrap {
-    /* 래퍼 (캡처 대상 영역) - 캡처 스크립트와 동일한 1036px로 설정 */
+    /* 래퍼 (캡처 대상 영역) */
     width: 1036px;
     height: 490px;
     margin: 20px auto 0 auto; 
@@ -38,7 +38,8 @@ body {
 /* 상단 탭 */
 .top-sub-menu{
     position:absolute;
-    top:30px;
+    /* 🚀 수정: top 값을 150px로 올려 배경 장식 아래로 배치 */
+    top:150px; 
     left:190px;
     display:flex;
     gap:20px;
@@ -55,7 +56,8 @@ body {
 .left-menu{
     position:absolute;
     left:50px;
-    top:100px;
+    /* 🚀 수정: top 값을 150px로 올려 배경 장식 아래로 배치 */
+    top:150px; 
     width:115px;
     line-height:16px;
     font-size:13px;
@@ -75,7 +77,8 @@ body {
 /* 📊 테이블 스타일 */
 .data-table{
     position:absolute;
-    top:80px;
+    /* 🚀 수정: top 값을 150px로 올려 배경 장식 아래로 배치 */
+    top:150px; 
     left:155px; 
     width:730px; 
     border-collapse:collapse;
