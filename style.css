@@ -7,14 +7,14 @@ body {
     padding: 0;
     display: flex;
     min-height: 100vh;
-    user-select: none; /* 드래그 선택 시 브라우저 기본 텍스트 선택 방지 */
+    user-select: none; /* 중요: 드래그 선택 시 브라우저 기본 텍스트 선택 방지 */
 }
 
 .wrap {
     flex-grow: 1;
-    padding: 20px 20px 20px 180px;
+    padding: 20px 20px 20px 180px; /* 왼쪽 메뉴 공간 확보 */
     position: relative;
-    max-width: calc(100vw - 320px);
+    /* max-width: calc(100vw - 320px); */ /* 이미지 다운로드 시 잘림 방지를 위해 제거 (app.js에서 동적으로 처리 예정) */
     overflow: auto;
 }
 
@@ -30,7 +30,7 @@ body {
     box-shadow: -3px 0 10px rgba(0, 0, 0, 0.5);
     overflow-y: auto;
     z-index: 100;
-    user-select: auto;
+    user-select: auto; /* 패널 내부는 선택 가능하게 */
 }
 
 .setting-panel h3 {
@@ -87,7 +87,15 @@ body {
     background-color: #45a049;
 }
 
-.small-btn { padding:6px 8px; background:#444;color:#fff;border-radius:4px;border:none;cursor:pointer }
+.small-btn { 
+    padding: 6px 8px; 
+    background: #444;
+    color: #fff;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    white-space: nowrap; /* 버튼 텍스트가 잘리지 않도록 */
+}
 .small-btn:hover{background:#555}
 
 /* Menu Styling */
@@ -119,6 +127,8 @@ body {
     background-color: #222;
     padding: 20px 0;
     box-shadow: 3px 0 10px rgba(0, 0, 0, 0.5);
+    z-index: 90; /* 테이블보다 아래, 패널보다 위 */
+    overflow-y: auto; /* 왼쪽 메뉴가 길어질 경우 스크롤 가능하게 */
 }
 
 .left-item {
@@ -142,7 +152,7 @@ body {
     border-collapse: collapse;
     font-size: 14px;
     table-layout: fixed;
-    user-select: auto;
+    user-select: auto; /* 테이블 내부는 텍스트 편집을 위해 선택 가능 */
 }
 
 .data-table td {
@@ -154,7 +164,7 @@ body {
     text-overflow: ellipsis;
     position: relative;
     line-height: 1;
-    height: 15px;
+    height: 15px; /* 기본 행 높이 (data-row 기준) */
     box-sizing: border-box;
     transition: background-color 0.1s, border-color 0.1s;
 }
@@ -166,7 +176,7 @@ body {
     font-weight: bold;
     text-align: left;
     padding: 8px 12px;
-    height: 25px;
+    height: 30px; /* 기본값 설정, JS에서 변경될 수 있음 */
 }
 .top-notice-mark {
     color: #ffdd66;
@@ -177,7 +187,7 @@ body {
     background-color: #444;
     color: #fff;
     font-weight: bold;
-    height: 30px;
+    height: 30px; /* 기본값 설정, JS에서 변경될 수 있음 */
     min-width: 80px;
 }
 
@@ -187,12 +197,13 @@ body {
     text-align: left;
     font-size: 0.9em;
     line-height: 1.4;
-    height: 50px;
+    height: 50px; /* 기본값 설정, JS에서 변경될 수 있음 */
 }
 
 .bottom-data-row td {
     background-color: #333;
     color: #ddd;
+    height: 15px; /* 기본값 설정, JS에서 변경될 수 있음 */
 }
 
 /* Editable Content Styling */
