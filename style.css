@@ -12,7 +12,7 @@ body {
 
 .wrap {
     flex-grow: 1;
-    padding: 20px 20px 20px 180px;
+    padding: 20px 20px 20px 200px;
     position: relative;
     max-width: calc(100vw - 320px);
     overflow: auto;
@@ -111,30 +111,41 @@ body {
 }
 .menu.active { color: #fff; font-weight: 600; border-bottom: 2px solid #ffdd66; padding-bottom: 6px; }
 
+/* Left menu */
 .left-menu {
     position: fixed;
     top: 0;
     left: 0;
-    width: 160px;
+    width: 180px;
     height: 100vh;
     background-color: #222;
     padding: 20px 0;
     box-shadow: 3px 0 10px rgba(0, 0, 0, 0.5);
+    z-index: 99;
 }
 
 .left-item {
-    padding: 8px 15px;
-    font-size: 0.9em;
+    padding: 10px 16px;
+    font-size: 0.95em;
     color: #bbb;
     cursor: pointer;
-    transition: background-color 0.1s;
-    border-left: 3px solid transparent;
+    transition: background-color 0.12s, color 0.12s;
+    border-left: 6px solid transparent;
+    margin-bottom: 4px;
+    border-radius: 0 6px 6px 0;
 }
 
-.left-item.active, .left-item:hover {
-    background-color: #333;
+.left-item:hover {
+    background: rgba(255,221,102,0.03);
+    color: #fff;
+}
+
+.left-item.active {
+    background: linear-gradient(90deg, rgba(255,221,102,0.06), rgba(255,221,102,0.02));
     border-left-color: #ffdd66;
     color: #fff;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
 }
 
 /* menu indicator */
