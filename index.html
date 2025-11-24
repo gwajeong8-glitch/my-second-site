@@ -61,7 +61,6 @@
             margin-top: 15px;
             margin-bottom: 10px;
         }
-        /* ... (기타 세팅 패널 스타일) ... */
         .color-target-control label {
             margin-right: 15px;
             cursor: pointer;
@@ -184,7 +183,6 @@
             font-size: 14px;
             table-layout: fixed;
             user-select: auto;
-            /* 6행으로 축소됨에 따라 아래 데이터 행 스타일은 필요 없어짐 */
         }
 
         .data-table td {
@@ -262,19 +260,19 @@
             z-index: 5;
         }
         
-        /* New: 최상단 메시지 스타일 */
+        /* New: 최상단 메시지 스타일 (이미 중앙 정렬) */
         .top-message-area {
             margin-top: 50px;
             margin-bottom: 30px; 
             font-size: 1.2em;
             color: #ffdd66;
             font-weight: bold;
-            text-align: center;
+            text-align: center; 
             border-bottom: 1px solid #444;
             padding-bottom: 10px;
         }
 
-        /* New: 하단 공지 스타일 */
+        /* New: 하단 공지 스타일 (수정: 폰트 크기 확대 및 중앙 정렬) */
         .bottom-notice-area {
             margin-top: 30px; 
             padding: 15px; 
@@ -282,8 +280,9 @@
             border-radius: 8px; 
             border-left: 5px solid #ffdd66;
             color: #ddd;
-            font-size: 0.95em;
+            font-size: 1.1em; /* 폰트 크기 확대 */
             line-height: 1.5;
+            text-align: center; /* 중앙 정렬 추가 */
         }
 
         /* small responsive fix */
@@ -462,6 +461,7 @@
             </tr>
         </tbody>
     </table>
+
     <div class="bottom-notice-area">
         <span style="font-weight: bold; color: #ffdd66;">[중요 공지]</span> 업무 진행 중 핵심 정보를 누락하는 일이 없도록 담당자의 지시에 따라 신중하게 처리하시기 바랍니다.
         <br>개별 업무 처리로 발생하는 모든 결과 책임은 당사자에게 귀속됩니다. 진행 상황은 시스템에 실시간 반영되오니, 항상 확인하여 주십시오.
@@ -529,12 +529,10 @@
     };
     const saveTableStateDebounced = debounce(saveTableStateImmediate, autoSaveDebounceMs);
     
-    // V2: 행 높이 적용 로직 개선 (height, line-height 분리)
     const applyRowHeight = (target, value) => {
         const heightPx = `${value}px`;
         const lineHeight = `${parseInt(value) - 10}px`; 
         const selectors = {
-            // 변경: bottom-data 관련 선택자는 제거
             'top-notice': '.top-notice-row', 
             'top-data': '.top-data-row, .top-data-header',
         };
@@ -555,7 +553,6 @@
     };
 
     const isDataRow = (row) => {
-        // 이제 top-data-row만 데이터 행입니다.
         return row.classList.contains('top-data-row');
     }
 
@@ -567,7 +564,6 @@
             toggleAdminBtn.style.background = adminMode ? '#4CAF50' : '#a33'; 
         }
 
-        // 헤더 포함 모든 셀에 contentEditable 상태 적용 (사용자 요청 반영)
         table.querySelectorAll('tr').forEach(row => {
             row.querySelectorAll('td').forEach(td => {
                 td.contentEditable = adminMode;
@@ -578,12 +574,9 @@
     };
 
     const applyLoadedState = () => {
-        // 초기 HTML이 로드될 때 기본 높이 적용
         applyRowHeight('top-notice', document.getElementById('topNoticeRowHeightInput').value);
         applyRowHeight('top-data', document.getElementById('topRowHeightInput').value);
-        // 삭제된 행에 대한 초기 높이 적용 로직은 제거합니다.
         
-        // 관리자 모드 상태 초기화
         toggleAdminMode(adminMode); 
 
         clearSelection();
@@ -674,12 +667,10 @@
             e.preventDefault(); 
             e.stopPropagation(); 
         } else if (clickedCell.contentEditable === 'true') {
-            // 일반 클릭 + 편집 가능 셀: 텍스트 편집 허용
             clearSelection();
             clickedCell.classList.add('selected');
             selectedCells.add(clickedCell);
         } else {
-             // 일반 클릭 + 편집 불가능 셀: 단일 셀 선택만 적용
              clearSelection();
              clickedCell.classList.add('selected');
              selectedCells.add(clickedCell);
@@ -778,7 +769,6 @@
     document.querySelectorAll('.height-apply-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const target = btn.dataset.target;
-            // 삭제된 행에 대한 이벤트는 무시
             if (target === 'middle-notice' || target === 'bottom-data') return;
 
             let inputId = `${target.replace('-data', 'RowHeightInput')}`;
@@ -799,7 +789,6 @@
     saveNowBtn?.addEventListener('click', () => saveTableStateImmediate());
 
     // Copy / Paste (JSON clipboard)
-    // (이전 버전과 동일한 로직을 유지합니다.)
     copyBtn?.addEventListener('click', async () => {
         const data = [];
         if (selectedCells.size === 0) {
@@ -899,7 +888,6 @@
             return;
         }
         
-        // 마지막 데이터 행 바로 다음 위치에 삽입
         let insertBeforeIndex = table.rows.length;
         for (let i = table.rows.length - 1; i >= 0; i--) {
             if (isDataRow(table.rows[i])) {
@@ -911,9 +899,8 @@
         const cols = table.querySelector('.top-data-header')?.cells.length || 5;
 
         const tr = table.insertRow(insertBeforeIndex);
-        tr.className = 'top-data-row'; // 이제 top-data-row 클래스를 사용
+        tr.className = 'top-data-row'; 
 
-        // 초기 높이 적용
         const heightValue = document.getElementById('topRowHeightInput').value;
         if(heightValue) applyRowHeight('top-data', heightValue);
 
@@ -956,7 +943,6 @@
         const sortedRows = Array.from(rowIndexes).sort((a, b) => b - a);
         for (const rIdx of sortedRows) {
             const r = table.rows[rIdx];
-            // 중요: 헤더나 공지 행은 삭제 방지
             if (r.classList.contains('top-data-header') || r.classList.contains('top-notice-row')) {
                 continue;
             }
@@ -969,8 +955,7 @@
         if (autoSave && deletedCount > 0) saveTableStateDebounced();
     });
 
-    // Add column(s) / Delete column(s) / Auto-Fit Column Width (이전 버전과 동일하게 유지)
-
+    // Add column(s)
     addColBtn?.addEventListener('click', () => {
         if (!adminMode) {
             alert('관리자 모드(편집 가능)에서만 열 추가가 가능합니다.');
@@ -1006,6 +991,7 @@
         if (autoSave) saveTableStateDebounced();
     });
 
+    // Delete column(s)
     deleteColBtn?.addEventListener('click', () => {
         if (!adminMode) {
             alert('관리자 모드(편집 가능)에서만 열 삭제가 가능합니다.');
@@ -1065,6 +1051,7 @@
         if (autoSave) saveTableStateDebounced();
     });
 
+    // Auto-Fit Column Width
     autoFitBtn?.addEventListener('click', () => {
         if (!adminMode) {
             alert('관리자 모드(편집 가능)에서만 열 너비 자동 맞춤이 가능합니다.');
@@ -1114,7 +1101,7 @@
     });
 
 
-    // Download functions (이전 버전과 동일하게 유지)
+    // Download functions
     const tableArea = document.getElementById('capture-area');
 
     downloadBtn?.addEventListener('click', () => {
