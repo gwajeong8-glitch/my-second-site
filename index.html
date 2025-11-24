@@ -68,7 +68,6 @@
             <button id="addColBtn" class="small-btn">열 추가</button>
             <button id="deleteRowBtn" class="small-btn">행 삭제</button>
             <button id="deleteColBtn" class="small-btn">열 삭제</button>
-            <button id="autoFitBtn" class="small-btn">열 자동맞춤</button>
         </div>
         <div style="display:flex; gap:8px;">
             <button id="toggleAdminBtn" class="small-btn">관리자 모드: OFF</button>
@@ -79,6 +78,7 @@
     <button class="download-button" id="downloadFullBtn" style="margin-top:12px;">🖼️ 테이블 영역 이미지 다운로드 (PNG)</button>
 </div>
 
+<!-- left menu fixed -->
 <div class="left-menu" id="leftMenu">
     <div class="left-item active">메인 화면</div>
     <div class="left-item">[매칭/고객 상태]</div>
@@ -107,10 +107,9 @@
         <div class="menu">VIP 회원 전용 통합 매니지먼트</div>
         <div class="menu">노블레스 회원 전용룸</div>
     </div>
-
-    <!-- 메뉴 선택 표시 영역 -->
-    <div id="menuIndicator" class="menu-indicator">선택: 메인 화면</div>
     
+    <div id="menuIndicator" class="menu-indicator">선택: 메인 화면</div>
+
     <table class="data-table" id="capture-area">
         <tbody>
             <tr class="top-notice-row">
