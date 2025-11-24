@@ -1,4 +1,4 @@
-// app.js (완성본)
+// app.js (완성판)
 // Firebase SDK import (앱에서 type="module"으로 로드해야 함)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -30,7 +30,10 @@ const applyFontSizeBtn = document.getElementById('applyFontSizeBtn');
 const fontSizeInput = document.getElementById('fontSizeInput');
 const downloadFullBtn = document.getElementById('downloadFullBtn');
 const selectionBox = document.getElementById('selectionBox');
-const leftMenu = document.querySelector('.left-menu'); // 왼쪽 메뉴 DOM 참조 추가
+
+const leftMenu = document.getElementById('leftMenu');
+const menuIndicator = document.getElementById('menuIndicator');
+const topSubMenu = document.getElementById('topSubMenu');
 
 // Tool buttons
 const autoSaveToggleBtn = document.getElementById('autoSaveToggleBtn');
@@ -38,9 +41,9 @@ const saveNowBtn = document.getElementById('saveNowBtn');
 const copyBtn = document.getElementById('copyBtn');
 const pasteBtn = document.getElementById('pasteBtn');
 const addRowBtn = document.getElementById('addRowBtn');
-const deleteRowBtn = document.getElementById('deleteRowBtn'); // 행 삭제 버튼 추가
 const addColBtn = document.getElementById('addColBtn');
-const deleteColBtn = document.getElementById('deleteColBtn'); // 열 삭제 버튼 추가
+const deleteRowBtn = document.getElementById('deleteRowBtn');
+const deleteColBtn = document.getElementById('deleteColBtn');
 const autoFitBtn = document.getElementById('autoFitBtn');
 const toggleAdminBtn = document.getElementById('toggleAdminBtn');
 const downloadBtn = document.getElementById('downloadBtn');
@@ -66,13 +69,9 @@ let adminMode = false;
 
 // helpers
 const debounce = (fn, ms) => {
-    let timer;
     return (...args) => {
-        clearTimeout(timer);
-        timer = setTimeout(() => {
-            timer = null;
-            fn.apply(this, args);
-        }, ms);
+        if (saveTimer) clearTimeout(saveTimer);
+        saveTimer = setTimeout(() => fn(...args), ms);
     };
 };
 
@@ -94,60 +93,30 @@ const serializeTableState = () => {
     });
 
     const rowHeights = {};
-    // 모든 높이 조절 버튼의 data-target에 해당하는 input 값 저장
     document.querySelectorAll('.height-apply-btn').forEach(button => {
-        const targetClass = button.dataset.target; // 예: top-notice-row, top-data-row
-        let inputElement;
-        if (targetClass === 'top-notice-row') {
-            inputElement = document.getElementById('topNoticeRowHeightInput');
-        } else if (targetClass === 'top-data-row') {
-            inputElement = document.getElementById('topDataRowHeightInput');
-        } else if (targetClass === 'middle-notice-row') {
-            inputElement = document.getElementById('middleNoticeRowHeightInput');
-        } else if (targetClass === 'bottom-data-row') {
-            inputElement = document.getElementById('bottomDataRowHeightInput');
-        }
-        
-        if (inputElement) {
-            rowHeights[targetClass] = inputElement.value;
-        }
+        const target = button.dataset.target;
+        let inputId = `${target.replace('-data', 'RowHeightInput')}`;
+        if (target === 'middle-notice') inputId = 'middleNoticeRowHeightInput';
+        const input = document.getElementById(inputId);
+        if (input) rowHeights[target] = input.value;
     });
 
-    return { cells: cellStates, rowHeights, timestamp: new Date(), tableHTML: table.outerHTML }; // 테이블 구조 자체를 저장
+    return { cells: cellStates, rowHeights, timestamp: new Date() };
 };
 
 const saveTableStateImmediate = async () => {
     if (!currentUserId || !isAuthReady) return;
     try {
         await setDoc(getTableDocRef(currentUserId), serializeTableState(), { merge: true });
-        console.log('Saved state to Firebase.');
+        console.log('Saved');
     } catch (e) {
-        console.error('Error saving state:', e);
+        console.error('Save error', e);
     }
 };
 const saveTableStateDebounced = debounce(saveTableStateImmediate, autoSaveDebounceMs);
 
 const applyLoadedState = (data) => {
     if (!data) return;
-
-    // 테이블 구조 복원 (행/열 추가 삭제 후 새로고침 시 중요)
-    if (data.tableHTML && !initialLoadDone) { // 초기 로드 시에만 HTML 구조를 복원하여 DOM을 재구성
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = data.tableHTML;
-        const loadedTable = tempDiv.querySelector('.data-table');
-        if (loadedTable) {
-            table.replaceWith(loadedTable);
-            // 새로운 테이블 참조로 업데이트
-            table = document.querySelector('.data-table'); 
-            // 새로 생성된 셀에 이벤트 리스너 다시 바인딩 (컨텐츠 수정 시 저장)
-            table.addEventListener('input', () => { if (autoSave) saveTableStateDebounced(); });
-            table.addEventListener('mousedown', handleMouseDown);
-            // 관리자 모드 상태에 따라 contentEditable 다시 설정
-            table.querySelectorAll('td').forEach(td => td.contentEditable = adminMode);
-        }
-    }
-
-    // 셀 내용 및 스타일 복원
     if (data.cells) {
         const rows = table.querySelectorAll('tr');
         rows.forEach((row, rIndex) => {
@@ -163,30 +132,17 @@ const applyLoadedState = (data) => {
             });
         });
     }
-
-    // 행 높이 복원 및 적용
     if (data.rowHeights) {
-        for (const [targetClass, value] of Object.entries(data.rowHeights)) {
-            let inputElement;
-            if (targetClass === 'top-notice-row') {
-                inputElement = document.getElementById('topNoticeRowHeightInput');
-            } else if (targetClass === 'top-data-row') {
-                inputElement = document.getElementById('topDataRowHeightInput');
-            } else if (targetClass === 'middle-notice-row') {
-                inputElement = document.getElementById('middleNoticeRowHeightInput');
-            } else if (targetClass === 'bottom-data-row') {
-                inputElement = document.getElementById('bottomDataRowHeightInput');
-            }
-
-            if (inputElement) {
-                inputElement.value = value;
-                applyRowHeight(targetClass, value); // 복원된 값으로 높이 즉시 적용
-            }
+        for (const [key, value] of Object.entries(data.rowHeights)) {
+            let inputId = `${key.replace('-data', 'RowHeightInput')}`;
+            if (key === 'middle-notice') inputId = 'middleNoticeRowHeightInput';
+            const input = document.getElementById(inputId);
+            if (input) input.value = value;
+            applyRowHeight(key, value);
         }
     }
     clearSelection();
 };
-
 
 const loadTableState = (userId) => {
     const docRef = getTableDocRef(userId);
@@ -194,11 +150,10 @@ const loadTableState = (userId) => {
         if (docSnap.exists()) {
             applyLoadedState(docSnap.data());
         } else if (!initialLoadDone) {
-            // 문서가 없으면 초기 상태 저장 (최초 로드 시)
             saveTableStateImmediate();
         }
         initialLoadDone = true;
-    }, (error) => console.error('Listen error:', error));
+    }, (error) => console.error('Listen error', error));
 };
 
 const initAuth = async () => {
@@ -210,7 +165,7 @@ const initAuth = async () => {
                 await signInAnonymously(auth);
                 currentUserId = auth.currentUser.uid;
             } catch (e) {
-                console.error('Anonymous authentication failed:', e);
+                console.error('Auth failed', e);
                 return;
             }
         }
@@ -265,26 +220,16 @@ const updateSelectionBoxVisual = (start, end) => {
     selectionBox.style.display = 'block';
 };
 
-const getCellCoordinates = (cell) => {
-    const row = cell.closest('tr');
-    if (!row) return { rowIndex: -1, cellIndex: -1 };
-    return { rowIndex: row.rowIndex, cellIndex: cell.cellIndex };
-};
+const getCellCoordinates = (cell) => ({ rowIndex: cell.closest('tr').rowIndex, cellIndex: cell.cellIndex });
 
-// Mouse handlers for table selection
+// Mouse handlers
 const handleMouseDown = (e) => {
     if (e.target.closest('.setting-panel')) return;
     const cell = e.target.closest('td');
     if (!cell) return;
 
-    isDragging = false;
     startCell = cell;
     endCell = cell;
-    // 클릭 시점에 바로 선택 상태 업데이트
-    clearSelection();
-    startCell.classList.add('selected');
-    selectedCells.add(startCell);
-
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
 };
@@ -305,13 +250,17 @@ const handleMouseUp = (e) => {
     document.removeEventListener('mousemove', handleMouseMove);
     document.removeEventListener('mouseup', handleMouseUp);
     if (!isDragging && startCell) {
-        // 단일 클릭 시 이미 handleMouseDown에서 처리됨
+        // 클릭만 한 경우 단일 선택
+        clearSelection();
+        startCell.classList.add('selected');
+        selectedCells.add(startCell);
+        // show selection box around single cell
+        updateSelectionBoxVisual(startCell, startCell);
     }
     isDragging = false;
     startCell = null;
     endCell = null;
 };
-
 
 // Color palette render
 const renderColorPalette = () => {
@@ -342,47 +291,34 @@ applyFontSizeBtn?.addEventListener('click', () => {
 });
 
 // Row height apply
-const applyRowHeight = (targetClass, value) => {
-    const heightPx = `${value}px`;
-    document.querySelectorAll(`.${targetClass}`).forEach(row => {
-        // top-data-header, bottom-data-header도 해당하는 경우에만 높이 적용
-        if (targetClass === 'top-data-row' && row.classList.contains('top-data-header')) {
-            row.style.height = heightPx;
-        } else if (targetClass === 'bottom-data-row' && row.classList.contains('bottom-data-header')) {
-            row.style.height = heightPx;
-        } else if (row.classList.contains(targetClass)) {
-            row.style.height = heightPx;
-        }
-    });
+const applyRowHeight = (target, value) => {
+    if (target === 'top-data') {
+        document.querySelectorAll('.top-data-row').forEach(row => row.style.height = `${value}px`);
+        document.querySelectorAll('.top-data-header').forEach(row => row.style.height = `${value}px`);
+    } else if (target === 'middle-notice') {
+        document.querySelectorAll('.middle-notice-row').forEach(row => row.style.height = `${value}px`);
+    } else if (target === 'bottom-data') {
+        document.querySelectorAll('.bottom-data-row').forEach(row => row.style.height = `${value}px`);
+        document.querySelectorAll('.bottom-data-header').forEach(row => row.style.height = `${value}px`);
+    }
     if (autoSave) saveTableStateDebounced();
 };
 
 document.querySelectorAll('.height-apply-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-        const targetClass = btn.dataset.target; // 예: top-notice-row, top-data-row
-        let inputElement;
-        if (targetClass === 'top-notice-row') {
-            inputElement = document.getElementById('topNoticeRowHeightInput');
-        } else if (targetClass === 'top-data-row') {
-            inputElement = document.getElementById('topDataRowHeightInput');
-        } else if (targetClass === 'middle-notice-row') {
-            inputElement = document.getElementById('middleNoticeRowHeightInput');
-        } else if (targetClass === 'bottom-data-row') {
-            inputElement = document.getElementById('bottomDataRowHeightInput');
-        }
-
-        if (inputElement) {
-            applyRowHeight(targetClass, inputElement.value);
-        }
+        const target = btn.dataset.target;
+        let inputId = `${target.replace('-data', 'RowHeightInput')}`;
+        if (target === 'middle-notice') inputId = 'middleNoticeRowHeightInput';
+        const input = document.getElementById(inputId);
+        if (input) applyRowHeight(target, input.value);
     });
 });
-
 
 // Autosave toggle
 autoSaveToggleBtn?.addEventListener('click', () => {
     autoSave = !autoSave;
     autoSaveToggleBtn.textContent = `자동저장: ${autoSave ? 'ON' : 'OFF'}`;
-    if (autoSave) saveTableStateImmediate(); // 자동저장 ON 시 즉시 한번 저장
+    if (autoSave) saveTableStateDebounced();
 });
 
 // Manual save
@@ -390,10 +326,6 @@ saveNowBtn?.addEventListener('click', () => saveTableStateImmediate());
 
 // Copy / Paste (JSON clipboard)
 copyBtn?.addEventListener('click', async () => {
-    if (selectedCells.size === 0) {
-        alert('복사할 셀을 선택해주세요.');
-        return;
-    }
     const data = [];
     selectedCells.forEach(cell => {
         const coords = getCellCoordinates(cell);
@@ -402,33 +334,19 @@ copyBtn?.addEventListener('click', async () => {
     try {
         await navigator.clipboard.writeText(JSON.stringify(data));
         alert('복사 완료');
-    } catch (e) { console.error('복사 실패:', e); alert('복사 실패 - 보안 정책으로 인해 클립보드 접근이 제한될 수 있습니다.'); }
+    } catch (e) { console.error(e); alert('복사 실패'); }
 });
 
 pasteBtn?.addEventListener('click', async () => {
     try {
         const txt = await navigator.clipboard.readText();
         const data = JSON.parse(txt);
-        if (!Array.isArray(data) || data.length === 0) throw new Error('Invalid or empty clipboard data.');
-
-        // 선택된 셀이 있다면 그 셀을 기준으로 붙여넣기 시작
-        let startR = 0, startC = 0;
-        if (selectedCells.size > 0) {
-            const firstSelected = Array.from(selectedCells)[0];
-            const coords = getCellCoordinates(firstSelected);
-            startR = coords.rowIndex;
-            startC = coords.cellIndex;
-        }
-
+        if (!Array.isArray(data)) throw new Error('Invalid');
         data.forEach(item => {
-            const targetRowIndex = startR + (item.r - data[0].r); // 첫 복사된 셀 기준으로 상대적 위치 계산
-            const targetColIndex = startC + (item.c - data[0].c);
-
-            const row = table.rows[targetRowIndex];
+            const row = table.rows[item.r];
             if (!row) return;
-            const cell = row.cells[targetColIndex];
+            const cell = row.cells[item.c];
             if (!cell) return;
-            
             cell.innerHTML = item.html;
             cell.style.color = item.color || '';
             cell.style.backgroundColor = item.bg || '';
@@ -436,206 +354,244 @@ pasteBtn?.addEventListener('click', async () => {
         });
         if (autoSave) saveTableStateDebounced();
         alert('붙여넣기 완료');
-    } catch (e) { console.error('붙여넣기 실패:', e); alert('붙여넣기 실패 - 클립보드 데이터가 유효하지 않거나 보안 정책으로 인해 제한될 수 있습니다.'); }
+    } catch (e) { console.error(e); alert('붙여넣기 실패 - 클립보드에 복사한 데이터인지 확인하세요.'); }
 });
-
 
 // Add row/col
 addRowBtn?.addEventListener('click', () => {
-    // 선택된 행 바로 아래에 추가하거나, 선택된 행이 없으면 마지막에 추가
-    let targetRowIndex = table.rows.length - 1; // 기본은 마지막
-    if (selectedCells.size > 0) {
-        const lastSelectedCell = Array.from(selectedCells).reduce((prev, curr) => 
-            getCellCoordinates(curr).rowIndex > getCellCoordinates(prev).rowIndex ? curr : prev
-        );
-        targetRowIndex = getCellCoordinates(lastSelectedCell).rowIndex;
-    }
-
-    const newRow = table.insertRow(targetRowIndex + 1);
-    newRow.className = 'bottom-data-row'; // 기본 클래스
-    const cols = table.rows[0]?.cells.length || 5; // 첫 번째 행의 셀 개수 기준
+    const cols = table.rows[1]?.cells.length || 5;
+    const tr = table.insertRow();
+    tr.className = 'bottom-data-row';
     for (let i = 0; i < cols; i++) {
-        const td = newRow.insertCell();
-        td.contentEditable = adminMode; // 관리자 모드에 따라 설정
+        const td = tr.insertCell();
+        td.contentEditable = true;
         td.innerHTML = '';
-        td.addEventListener('input', () => { if (autoSave) saveTableStateDebounced(); });
     }
     if (autoSave) saveTableStateDebounced();
 });
-
-deleteRowBtn?.addEventListener('click', () => {
-    if (selectedCells.size === 0) {
-        alert('삭제할 행의 셀을 하나 이상 선택해주세요.');
-        return;
-    }
-    if (!confirm('선택된 행을 삭제하시겠습니까?')) return;
-
-    const rowsToDelete = new Set();
-    selectedCells.forEach(cell => {
-        rowsToDelete.add(cell.closest('tr'));
-    });
-
-    const sortedRowsToDelete = Array.from(rowsToDelete).sort((a, b) => b.rowIndex - a.rowIndex); // 역순으로 정렬하여 삭제 시 인덱스 문제 방지
-    sortedRowsToDelete.forEach(row => {
-        if (row && row.parentNode) {
-            // 헤더 행이나 중요한 공지 행은 삭제 방지 (필요시 클래스 등으로 구분)
-            if (!row.classList.contains('top-notice-row') && !row.classList.contains('top-data-header') && !row.classList.contains('middle-notice-row') && !row.classList.contains('bottom-data-header')) {
-                row.parentNode.removeChild(row);
-            } else {
-                console.warn("Important row blocked from deletion:", row);
-            }
-        }
-    });
-    clearSelection();
-    if (autoSave) saveTableStateDebounced();
-});
-
 
 addColBtn?.addEventListener('click', () => {
-    // 선택된 열 바로 오른쪽에 추가하거나, 선택된 열이 없으면 마지막에 추가
-    let targetColIndex = table.rows[0]?.cells.length || 0; // 기본은 마지막
-    if (selectedCells.size > 0) {
-        const lastSelectedCell = Array.from(selectedCells).reduce((prev, curr) => 
-            getCellCoordinates(curr).cellIndex > getCellCoordinates(prev).cellIndex ? curr : prev
-        );
-        targetColIndex = getCellCoordinates(lastSelectedCell).cellIndex;
-    }
-
     for (const tr of table.rows) {
-        const td = tr.insertCell(targetColIndex + 1);
-        td.contentEditable = adminMode; // 관리자 모드에 따라 설정
+        const td = tr.insertCell();
+        td.contentEditable = true;
         td.innerHTML = '';
-        td.addEventListener('input', () => { if (autoSave) saveTableStateDebounced(); });
     }
     if (autoSave) saveTableStateDebounced();
 });
 
-deleteColBtn?.addEventListener('click', () => {
-    if (selectedCells.size === 0) {
-        alert('삭제할 열의 셀을 하나 이상 선택해주세요.');
+// Delete row(s) - based on selection; if none selected, delete last data row (not headers)
+deleteRowBtn?.addEventListener('click', () => {
+    // gather unique row indexes from selected cells
+    const rowIndexes = new Set();
+    selectedCells.forEach(cell => rowIndexes.add(cell.closest('tr').rowIndex));
+    const rows = Array.from(table.rows);
+    // If no selection, try to delete last bottom-data-row, else last row
+    if (rowIndexes.size === 0) {
+        // find last deletable row (bottom-data-row or top-data-row but avoid header/notice rows)
+        for (let i = rows.length - 1; i >= 0; i--) {
+            const r = rows[i];
+            if (r.classList.contains('bottom-data-row') || r.classList.contains('top-data-row')) {
+                table.deleteRow(i);
+                if (autoSave) saveTableStateDebounced();
+                return;
+            }
+        }
+        alert('삭제 가능한 데이터 행이 없습니다.');
         return;
     }
-    if (!confirm('선택된 열을 삭제하시겠습니까?')) return;
 
-    const colsToDelete = new Set();
-    selectedCells.forEach(cell => {
-        colsToDelete.add(cell.cellIndex);
-    });
-
-    const sortedColsToDelete = Array.from(colsToDelete).sort((a, b) => b - a); // 역순으로 정렬하여 삭제 시 인덱스 문제 방지
-
-    table.querySelectorAll('tr').forEach(row => {
-        sortedColsToDelete.forEach(colIndex => {
-            if (row.cells[colIndex]) {
-                row.deleteCell(colIndex);
-            }
-        });
-    });
+    // Convert to array and sort descending to remove without index shift problems
+    const sorted = Array.from(rowIndexes).sort((a,b)=>b-a);
+    for (const idx of sorted) {
+        const r = table.rows[idx];
+        if (!r) continue;
+        // prevent deleting special single-row headers/notice rows
+        if (r.classList.contains('top-notice-row') || r.classList.contains('top-data-header') || r.classList.contains('middle-notice-row') || r.classList.contains('bottom-data-header')) {
+            continue;
+        }
+        table.deleteRow(idx);
+    }
     clearSelection();
     if (autoSave) saveTableStateDebounced();
 });
 
+// Delete column(s) - based on selection; if none selected, delete last column
+deleteColBtn?.addEventListener('click', () => {
+    const colIndexes = new Set();
+    selectedCells.forEach(cell => colIndexes.add(cell.cellIndex));
+    // build rows array snapshot
+    const rows = Array.from(table.rows);
+    if (colIndexes.size === 0) {
+        // delete last column index (find max cell count -1)
+        const lastRow = rows[0];
+        if (!lastRow) return;
+        const lastIndex = lastRow.cells.length - 1;
+        if (lastIndex < 0) return;
+        for (let r = 0; r < rows.length; r++) {
+            const row = rows[r];
+            if (row.cells.length > lastIndex) row.deleteCell(lastIndex);
+        }
+        if (autoSave) saveTableStateDebounced();
+        return;
+    }
+
+    // sort descending and remove cells per row
+    const sortedCols = Array.from(colIndexes).sort((a,b)=>b-a);
+    for (const cIdx of sortedCols) {
+        for (let r = 0; r < rows.length; r++) {
+            const row = rows[r];
+            if (row.cells.length > cIdx) row.deleteCell(cIdx);
+        }
+    }
+    clearSelection();
+    if (autoSave) saveTableStateDebounced();
+});
 
 // Auto-fit columns: measure content width and set table-layout to auto briefly
 autoFitBtn?.addEventListener('click', () => {
-    const colCount = table.rows[0]?.cells.length || 0; // 첫 번째 행의 셀 개수를 기준으로 열 개수 파악
+    const colCount = table.rows[1]?.cells.length || 0;
     const widths = new Array(colCount).fill(0);
-
-    for (let r = 0; r < table.rows.length; r++) {
-        const row = table.rows[r];
-        for (let c = 0; c < row.cells.length; c++) {
-            const cell = row.cells[c];
-            if (c >= colCount) continue; // 열 개수 초과하는 셀은 무시 (colspan 등 예외 처리 필요시)
-
+    for (let r=0;r<table.rows.length;r++){
+        for (let c=0;c< (table.rows[r].cells.length); c++){
+            const cell = table.rows[r].cells[c];
             const span = document.createElement('span');
-            span.style.visibility = 'hidden';
-            span.style.whiteSpace = 'nowrap';
-            span.style.font = window.getComputedStyle(cell).font; // 셀의 폰트 스타일 적용
-            span.innerHTML = cell.innerHTML.replace(/<br>/g, ' '); // <br> 태그 처리
+            span.style.visibility='hidden';
+            span.style.whiteSpace='nowrap';
+            span.style.font = window.getComputedStyle(cell).font;
+            span.innerHTML = cell.innerHTML.replace(/<br>/g,' ');
             document.body.appendChild(span);
-            widths[c] = Math.max(widths[c] || 0, span.offsetWidth + 20); // 패딩 추가
+            widths[c] = Math.max(widths[c]||0, span.offsetWidth + 20);
             document.body.removeChild(span);
         }
     }
-
-    // 계산된 너비 적용
-    for (let c = 0; c < colCount; c++) {
-        // 모든 행의 해당 열 셀에 너비 적용
-        for (let r = 0; r < table.rows.length; r++) {
+    for (let c=0;c<colCount;c++){
+        for (let r=0;r<table.rows.length;r++){
             const cell = table.rows[r].cells[c];
-            if (cell) cell.style.width = `${widths[c]}px`;
+            if (cell) cell.style.width = widths[c] + 'px';
         }
     }
-    if (autoSave) saveTableStateDebounced();
 });
-
 
 // Toggle admin / readonly
 toggleAdminBtn?.addEventListener('click', () => {
     adminMode = !adminMode;
     toggleAdminBtn.textContent = `관리자 모드: ${adminMode ? 'ON' : 'OFF'}`;
     table.querySelectorAll('td').forEach(td => td.contentEditable = adminMode);
-    if (autoSave) saveTableStateDebounced();
 });
 
+// Image download (html2canvas) - include left menu, exclude right setting panel during capture
+const captureWithLeftMenu = async () => {
+    // hide setting panel temporarily
+    const settingPanel = document.getElementById('settingPanel');
+    const prevDisplay = settingPanel.style.display;
+    settingPanel.style.display = 'none';
 
-// Image download (html2canvas) - 왼쪽 메뉴 포함
-downloadFullBtn?.addEventListener('click', async () => {
-    // 캡처할 전체 영역 (body 또는 특정 wrapper)을 선택하여 left-menu와 table을 모두 포함
-    const captureArea = document.body; // body 전체를 캡처 대상으로 설정
-
-    // 임시 스타일 적용: left-menu와 wrap을 나란히 배치하여 캡처될 수 있도록
-    const originalBodyOverflow = document.body.style.overflow;
-    const originalWrapWidth = document.querySelector('.wrap').style.maxWidth;
-    const originalWrapMarginLeft = document.querySelector('.wrap').style.marginLeft;
-    const originalLeftMenuPosition = leftMenu.style.position;
-    const originalLeftMenuLeft = leftMenu.style.left;
-
-    document.body.style.overflow = 'hidden'; // 캡처 중 스크롤바 숨김
-    document.querySelector('.wrap').style.maxWidth = 'none'; // wrap의 최대 너비 제한 해제
-    document.querySelector('.wrap').style.marginLeft = '0'; // wrap 마진 초기화
-
-    // left-menu를 일시적으로 document flow에 맞게 조정
-    leftMenu.style.position = 'relative'; 
-    leftMenu.style.left = '0';
-    
-    // 캡처할 요소들 모두 포함하는 새로운 임시 wrapper 생성
-    const tempWrapper = document.createElement('div');
-    tempWrapper.style.display = 'flex';
-    tempWrapper.style.width = 'fit-content'; // 내용에 맞게 너비 조절
-    tempWrapper.style.backgroundColor = '#1a1a1a'; // body 배경색과 동일하게 설정
-    tempWrapper.appendChild(leftMenu.cloneNode(true)); // leftMenu 복사본 추가
-    tempWrapper.appendChild(document.querySelector('.wrap').cloneNode(true)); // wrap 복사본 추가
-
-    // 원본 요소들은 임시로 숨김
-    leftMenu.style.visibility = 'hidden';
-    document.querySelector('.wrap').style.visibility = 'hidden';
-
-    // 임시 wrapper를 body에 추가 (화면에 보이지 않도록 절대 위치 사용)
-    tempWrapper.style.position = 'absolute';
-    tempWrapper.style.top = '-9999px';
-    tempWrapper.style.left = '-9999px';
-    document.body.appendChild(tempWrapper);
-
+    // ensure selection box hidden for cleaner capture
+    const prevSelectionDisplay = selectionBox.style.display;
+    selectionBox.style.display = 'none';
 
     try {
-        const canvas = await html2canvas(tempWrapper, { 
-            useCORS: true, 
-            allowTaint: false, 
-            scale: 2, 
-            backgroundColor: '#1a1a1a', // 배경색 지정
-            // capture 영역을 tempWrapper로 지정
-            width: tempWrapper.offsetWidth,
-            height: tempWrapper.offsetHeight
-        });
+        // capture whole body to include left-menu (left-menu is fixed)
+        const canvas = await html2canvas(document.body, { useCORS:true, allowTaint:false, scale:2, backgroundColor: null });
         const data = canvas.toDataURL('image/png');
         const a = document.createElement('a');
         a.href = data;
-        a.download = `noblesse_full_capture_${Date.now()}.png`;
+        a.download = `noblesse_full_${Date.now()}.png`;
         document.body.appendChild(a);
         a.click();
         a.remove();
-    } catch (e) { 
-        console.error('Capture failed:', e); 
-        alert('이미지 생성 실패 - CORS 문제 또는 요소 렌더링 문제일 수 있습니다.'); 
-    } finally {
+    } catch (e) { console.error('Capture failed', e); alert('이미지 생성 실패'); }
+    finally {
+        // restore
+        settingPanel.style.display = prevDisplay;
+        selectionBox.style.display = prevSelectionDisplay;
+    }
+};
+
+downloadFullBtn?.addEventListener('click', captureWithLeftMenu);
+downloadBtn?.addEventListener('click', captureWithLeftMenu);
+
+// Misc: keep selection visual in sync on scroll/resize
+const syncSelectionVisual = () => {
+    if (selectedCells.size === 0) return;
+    const arr = Array.from(selectedCells);
+    updateSelectionBoxVisual(arr[0], arr[arr.length-1]);
+};
+
+document.querySelector('.wrap').addEventListener('scroll', () => syncSelectionVisual());
+window.addEventListener('resize', () => syncSelectionVisual());
+
+// Init
+renderColorPalette();
+initAuth();
+
+// Mouse listeners on table
+table.addEventListener('mousedown', handleMouseDown);
+
+// Save on content changes
+table.addEventListener('input', () => { if (autoSave) saveTableStateDebounced(); });
+
+// Expose manual save for external button
+window.saveTableStateImmediate = saveTableStateImmediate;
+
+/* --------------------------
+   New: document click handler
+   - 목적: 드래그 후 표시되는 네모(선택상태)를 문서의 아무 곳이나 클릭하면 사라지게.
+   - 단, 드래그 중(isDragging)에는 동작하지 않음.
+   -------------------------- */
+document.addEventListener('click', (e) => {
+    // if currently dragging, ignore (mouseup will handle)
+    if (isDragging) return;
+
+    // If click happened inside table but on a cell, don't immediately clear (let cell click handlers run)
+    const clickedCell = e.target.closest('td');
+    // If clicked on a control input/button/color swatch we still want to clear selection (spec requested "아무데나 클릭하면 없어지게")
+    // So: ALWAYS clear selection except when click is within a selection action that should not clear (e.g., dragging start handled elsewhere)
+    // We'll clear selection unconditionally (this matches "아무데나 클릭하면 없어지게")
+    // But to allow clicking a cell to select it, we only clear before letting other handlers run.
+    // Because event order: target handlers run first. This document click runs after them.
+    // So clearing here is appropriate.
+    clearSelection();
+});
+
+/* --------------------------
+   New: Left menu & Top menu click behavior
+   - 클릭 시 active 토글 & menuIndicator에 텍스트 표시
+   -------------------------- */
+if (leftMenu) {
+    leftMenu.addEventListener('click', (e) => {
+        const li = e.target.closest('.left-item');
+        if (!li) return;
+        // remove previous active
+        leftMenu.querySelectorAll('.left-item').forEach(it => it.classList.remove('active'));
+        li.classList.add('active');
+        // 표시
+        if (menuIndicator) menuIndicator.textContent = `선택: ${li.textContent.trim()}`;
+    });
+}
+if (topSubMenu) {
+    topSubMenu.addEventListener('click', (e) => {
+        const it = e.target.closest('.menu');
+        if (!it) return;
+        topSubMenu.querySelectorAll('.menu').forEach(m=>m.classList.remove('active'));
+        it.classList.add('active');
+        if (menuIndicator) menuIndicator.textContent = `선택: ${it.textContent.trim()}`;
+    });
+}
+
+/* --------------------------
+   Utility: maintain selection visual if user clicks a single cell (we set selection in mouseup)
+   but because we clear selection on document click (to satisfy req #1), we ensure that clicking a cell still selects it:
+   -> table mousedown/mouseup handlers add selection; document click clears AFTER them, so previously we saw clearing.
+   To ensure clicks on a cell keep the single selection visible, we re-add a small handler on table click to restore if needed.
+   -------------------------- */
+table.addEventListener('click', (e) => {
+    const cell = e.target.closest('td');
+    if (!cell) return;
+    // if there was no pre-existing selection (because document click cleared), ensure this clicked cell becomes selected
+    // (this handles normal click-select behavior)
+    clearSelection();
+    cell.classList.add('selected');
+    selectedCells.add(cell);
+    updateSelectionBoxVisual(cell, cell);
+});
