@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>노블레스 데이터 현황 (통합본)</title>
+    <title>노블레스 데이터 현황 (최종 통합본)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
@@ -100,7 +100,8 @@
 
         .small-btn { padding:6px 8px; background:#444;color:#fff;border-radius:4px;border:none;cursor:pointer }
         .small-btn:hover{background:#555}
-        .small-btn:disabled{background:#222; cursor:not-allowed; color:#888;}
+        /* 관리자 모드 OFF일 때 비활성화 스타일 */
+        .small-btn:disabled{background:#222; cursor:not-allowed; color:#888;} 
 
         /* Menu Styling */
         .top-sub-menu {
@@ -123,7 +124,7 @@
         }
         .menu.active { color: #fff; font-weight: 600; border-bottom: 2px solid #ffdd66; padding-bottom: 6px; }
 
-        /* Left menu */
+        /* Left menu (사용자님께서 '오른쪽 메뉴'라고 말씀하신 것으로 추정됨) */
         .left-menu {
             position: fixed;
             top: 0;
@@ -177,11 +178,11 @@
             border-collapse: collapse;
             font-size: 14px;
             table-layout: fixed;
-            user-select: auto; /* 테이블 내부는 텍스트 편집을 위해 선택 가능 */
+            user-select: auto; 
         }
 
         .data-table tr {
-            position: relative; /* Row resizer를 위한 설정 */
+            position: relative; 
         }
         
         .data-table td {
@@ -192,7 +193,6 @@
             overflow: hidden;
             text-overflow: ellipsis;
             position: relative;
-            /* line-height: 1; -> app.js에서 동적으로 관리 */
             height: 15px;
             box-sizing: border-box;
             transition: background-color 0.1s, border-color 0.1s;
@@ -261,18 +261,16 @@
         }
 
         /* Resizer Styling */
-        /* 컬럼 리사이저는 셀 안에 위치하여 우측 경계를 조절 */
         .col-resizer { 
             position: absolute; 
-            right: 0; /* 우측 경계에 딱 맞춤 */
+            right: 0; 
             top: 0; 
-            width: 8px; /* 드래그 가능한 영역 */
+            width: 8px; 
             height: 100%; 
             cursor: col-resize; 
             z-index: 20; 
-            transform: translateX(50%); /* 경계선 중앙에 위치하도록 조정 */
+            transform: translateX(50%); 
         }
-        /* 행 리사이저는 TR에 위치하여 하단 경계를 조절 */
         .row-resizer { 
             position: absolute; 
             bottom: 0; 
@@ -281,7 +279,7 @@
             height: 8px; 
             cursor: row-resize; 
             z-index: 20; 
-            transform: translateY(50%); /* 경계선 중앙에 위치하도록 조정 */
+            transform: translateY(50%); 
         }
         .resizer-display { 
             position: fixed; 
@@ -311,7 +309,7 @@
         ※ 사용법: 테이블 셀을 드래그하여 선택한 후, 아래 옵션을 클릭하면 적용됩니다.
     </div>
     <div style="color: #4CAF50; margin-bottom: 10px; font-size: 0.9em; font-weight: bold;">
-        ※ 크기 조절: 관리자 모드(ON) 후, 셀 경계선을 드래그하세요.
+        ※ 크기 조절: **관리자 모드(ON)** 후, 셀 경계선을 드래그하세요.
     </div>
 
     <div class="color-target-control">
@@ -327,7 +325,7 @@
     <div style="margin-top: 10px; padding-top: 15px; border-top: 1px solid #444;">
         <label for="fontSizeInput">글꼴 크기 (px): </label>
         <input type="number" id="fontSizeInput" min="8" max="48" value="14" style="width: 60px; margin-left: 5px; padding: 5px; color: black; border-radius: 3px; border: none;">
-        <button id="applyFontSizeBtn" style="margin-left: 5px; padding: 5px 12px; background: #555; color: white; border: none; border-radius: 3px; cursor: pointer; transition: background 0.2s;">적용</button>
+        <button id="applyFontSizeBtn" disabled style="margin-left: 5px; padding: 5px 12px; background: #555; color: white; border: none; border-radius: 3px; cursor: pointer; transition: background 0.2s;">적용</button>
     </div>
 
     <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #444;">
@@ -352,44 +350,45 @@
                 <input type="number" id="defaultRowHeight" min="20" value="25" style="width: 50px; padding: 5px; color: black; border-radius: 3px; border: none;">
             </div>
         </div>
-        <button id="applyTableStructureBtn" class="download-button" style="background: #3498db; margin-top: 5px;">테이블 구조/크기 적용</button>
+        <button id="applyTableStructureBtn" class="download-button" disabled style="background: #3498db; margin-top: 5px;">테이블 구조/크기 적용</button>
     </div>
+
     <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #444;">
         <h3>📐 그룹별 행 높이 (px)</h3>
         
         <div style="margin-bottom: 10px;">
             <label for="topRowHeightInput" style="display: block; margin-bottom: 5px;">상단 데이터 행 높이:</label>
             <input type="number" id="topRowHeightInput" min="10" max="200" value="25" style="width: 60px; padding: 5px; color: black; border-radius: 3px; border: none;">
-            <button id="applyTopRowHeightBtn" class="height-apply-btn" data-target="top-data" style="margin-left: 5px; padding: 5px 12px; background: #555; color: white; border: none; border-radius: 3px; cursor: pointer;">적용</button>
+            <button id="applyTopRowHeightBtn" class="height-apply-btn" data-target="top-data" disabled style="margin-left: 5px; padding: 5px 12px; background: #555; color: white; border: none; border-radius: 3px; cursor: pointer;">적용</button>
         </div>
 
         <div style="margin-bottom: 10px;">
             <label for="middleNoticeRowHeightInput" style="display: block; margin-bottom: 5px;">중단 공지/제목 행 높이:</label>
             <input type="number" id="middleNoticeRowHeightInput" min="20" max="300" value="50" style="width: 60px; padding: 5px; color: black; border-radius: 3px; border: none;">
-            <button id="applyMiddleNoticeRowHeightBtn" class="height-apply-btn" data-target="middle-notice" style="margin-left: 5px; padding: 5px 12px; background: #555; color: white; border: none; border-radius: 3px; cursor: pointer;">적용</button>
+            <button id="applyMiddleNoticeRowHeightBtn" class="height-apply-btn" data-target="middle-notice" disabled style="margin-left: 5px; padding: 5px 12px; background: #555; color: white; border: none; border-radius: 3px; cursor: pointer;">적용</button>
         </div>
 
         <div>
             <label for="bottomRowHeightInput" style="display: block; margin-bottom: 5px;">하단 데이터 행 높이:</label>
             <input type="number" id="bottomRowHeightInput" min="10" max="200" value="25" style="width: 60px; padding: 5px; color: black; border-radius: 3px; border: none;">
-            <button id="applyBottomRowHeightBtn" class="height-apply-btn" data-target="bottom-data" style="margin-left: 5px; padding: 5px 12px; background: #555; color: white; border: none; border-radius: 3px; cursor: pointer;">적용</button>
+            <button id="applyBottomRowHeightBtn" class="height-apply-btn" data-target="bottom-data" disabled style="margin-left: 5px; padding: 5px 12px; background: #555; color: white; border: none; border-radius: 3px; cursor: pointer;">적용</button>
         </div>
-        <button id="autoFitBtn" class="small-btn" style="margin-top: 10px; width: 100%; background: #007bff;">열 너비 자동 맞춤 (Auto-Fit)</button>
+        <button id="autoFitBtn" class="small-btn" disabled style="margin-top: 10px; width: 100%; background: #007bff;">열 너비 자동 맞춤 (Auto-Fit)</button>
     </div>
 
     <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #444;">
         <h3>⚙️ 작업 도구</h3>
         <div style="display:flex; gap:8px; margin-bottom:8px;">
             <button id="autoSaveToggleBtn" class="small-btn">자동저장: OFF</button>
-            <button id="saveNowBtn" class="small-btn">저장</button>
-            <button id="copyBtn" class="small-btn">복사</button>
-            <button id="pasteBtn" class="small-btn">붙여넣기</button>
+            <button id="saveNowBtn" class="small-btn" disabled>저장</button>
+            <button id="copyBtn" class="small-btn" disabled>복사</button>
+            <button id="pasteBtn" class="small-btn" disabled>붙여넣기</button>
         </div>
         <div style="display:flex; gap:8px; margin-bottom:8px;">
-            <button id="addRowBtn" class="small-btn">행 추가</button>
-            <button id="addColBtn" class="small-btn">열 추가</button>
-            <button id="deleteRowBtn" class="small-btn">행 삭제</button>
-            <button id="deleteColBtn" class="small-btn">열 삭제</button>
+            <button id="addRowBtn" class="small-btn" disabled>행 추가</button>
+            <button id="addColBtn" class="small-btn" disabled>열 추가</button>
+            <button id="deleteRowBtn" class="small-btn" disabled>행 삭제</button>
+            <button id="deleteColBtn" class="small-btn" disabled>열 삭제</button>
         </div>
         <div style="display:flex; gap:8px;">
             <button id="toggleAdminBtn" class="small-btn" style="background: #a33;">관리자 모드: OFF</button>
@@ -578,17 +577,18 @@
     const addColBtn = document.getElementById('addColBtn');
     const deleteRowBtn = document.getElementById('deleteRowBtn');
     const deleteColBtn = document.getElementById('deleteColBtn');
-    const autoFitBtn = document.getElementById('autoFitBtn'); // New button ID
+    const autoFitBtn = document.getElementById('autoFitBtn'); 
     const toggleAdminBtn = document.getElementById('toggleAdminBtn');
     const downloadBtn = document.getElementById('downloadBtn');
     const downloadFullBtn = document.getElementById('downloadFullBtn');
 
-    // New Feature DOM Refs: Table Structure Controls
+    // Table Structure Controls
     const newRowCountInput = document.getElementById('newRowCount');
     const newColCountInput = document.getElementById('newColCount');
     const defaultColWidthInput = document.getElementById('defaultColWidth');
     const defaultRowHeightInput = document.getElementById('defaultRowHeight');
     const applyTableStructureBtn = document.getElementById('applyTableStructureBtn');
+    const heightApplyBtns = document.querySelectorAll('.height-apply-btn');
 
     // Resizing state
     let isResizingCol = false;
@@ -614,9 +614,10 @@
     let endCell = null;
     let selectedCells = new Set();
     let autoSave = false;
-    let autoSaveDebounceMs = 800; // 디바운스 타임
+    let autoSaveDebounceMs = 800;
     let saveTimer = null;
     let adminMode = false; // 기본값은 비활성화(읽기 전용)
+    let clipboard = [];
 
     // helpers
     const debounce = (fn, ms) => {
@@ -627,6 +628,10 @@
     };
 
     const getTableDocRef = (userId) => doc(db, 'artifacts', appId, 'users', userId, 'table_data', TABLE_DOC_ID);
+
+    // ===========================================
+    // 1. Firebase Logic (Save/Load)
+    // ===========================================
 
     const serializeTableState = () => {
         const cellStates = {};
@@ -644,7 +649,7 @@
         });
 
         const rowHeights = {};
-        document.querySelectorAll('.height-apply-btn').forEach(button => {
+        heightApplyBtns.forEach(button => {
             const target = button.dataset.target;
             let inputId = `${target.replace('-data', 'RowHeightInput')}`;
             if (target === 'middle-notice') inputId = 'middleNoticeRowHeightInput';
@@ -652,13 +657,12 @@
             if (input) rowHeights[target] = input.value;
         });
 
-        // New: Capture column widths from the first data header row
         const colWidths = [];
-        const headerRow = table.querySelector('.top-data-header'); // Use the first data header
+        const headerRow = table.querySelector('.top-data-header'); 
         if (headerRow) {
             headerRow.querySelectorAll('td').forEach(td => {
-                // Save the inline style width or calculate it if not set (for manual resize persistence)
-                colWidths.push(td.style.width || `${td.offsetWidth}px`); 
+                // 인라인 스타일로 저장된 너비 값만 저장
+                colWidths.push(td.style.width || ''); 
             });
         }
         
@@ -676,10 +680,9 @@
     };
     const saveTableStateDebounced = debounce(saveTableStateImmediate, autoSaveDebounceMs);
 
-    // V2: 행 높이 적용 로직 개선 (height, line-height 분리)
     const applyRowHeight = (target, value) => {
         const heightPx = `${value}px`;
-        const lineHeight = `${parseInt(value) - 10}px`; // padding/border 고려
+        const lineHeight = `${parseInt(value) - 10}px`; 
         
         const selectors = {
             'top-data': '.top-data-row, .top-data-header',
@@ -694,13 +697,12 @@
                 cell.style.lineHeight = lineHeight; 
             });
         });
-
-        if (autoSave) saveTableStateDebounced();
     };
-
 
     const applyLoadedState = (data) => {
         if (!data) return;
+        
+        // 1. Cell Data Load
         if (data.cells) {
             const rows = table.querySelectorAll('tr');
             rows.forEach((row, rIndex) => {
@@ -717,42 +719,36 @@
             });
         }
         
+        // 2. Row Height Load
         if (data.rowHeights) {
             for (const [key, value] of Object.entries(data.rowHeights)) {
                 let inputId = `${key.replace('-data', 'RowHeightInput')}`;
                 if (key === 'middle-notice') inputId = 'middleNoticeRowHeightInput';
                 const input = document.getElementById(inputId);
                 if (input) input.value = value;
-                applyRowHeight(key, value); // 로드 시 높이 적용
+                applyRowHeight(key, value);
             }
         }
         
-        // New: Apply column widths on load
+        // 3. Column Width Load (using inline styles)
         if (data.colWidths && data.colWidths.length > 0) {
-             const style = document.createElement('style');
-             let css = '';
-             data.colWidths.forEach((width, index) => {
-                 // Skip if width is default ('') or not a string
-                 if (typeof width === 'string' && width) {
-                    // Use nth-child for column targeting
-                    css += `.data-table tr:not(.top-notice-row):not(.middle-notice-row) td:nth-child(${index + 1}) { width: ${width} !important; min-width: ${width} !important; }`;
-                 }
-             });
-             
-             // Remove previous loaded style to prevent accumulation
-             document.querySelector('#loadedColWidthsStyle')?.remove();
-             
-             style.textContent = css;
-             style.id = 'loadedColWidthsStyle';
-             document.head.appendChild(style);
+             const headerRow = table.querySelector('.top-data-header');
+             if (headerRow) {
+                 headerRow.querySelectorAll('td').forEach((td, index) => {
+                     const width = data.colWidths[index];
+                     if (width) {
+                        td.style.width = width;
+                        td.style.minWidth = width;
+                     }
+                 });
+             }
         }
         
-        // Admin 모드가 꺼져있다면 읽기 전용으로 설정
-        if (!adminMode) {
-            table.querySelectorAll('td').forEach(td => td.contentEditable = false);
-        }
+        // 4. Content Editable Toggling
+        updateAdminMode(adminMode); 
+        
         clearSelection();
-        addResizersToTable(); // 로드 후 리사이저 다시 추가
+        addResizersToTable(); 
     };
 
     const loadTableState = (userId) => {
@@ -761,7 +757,6 @@
             if (docSnap.exists()) {
                 applyLoadedState(docSnap.data());
             } else if (!initialLoadDone) {
-                // 초기 로드 시 데이터가 없으면 현재 상태를 저장
                 saveTableStateImmediate();
             }
             initialLoadDone = true;
@@ -787,13 +782,18 @@
             }
         });
     };
-    
-    // Selection utilities
+
+    // ===========================================
+    // 2. Selection & Visual Logic
+    // ===========================================
+
     const clearSelection = () => {
         selectedCells.forEach(td => td.classList.remove('selected'));
         selectedCells.clear();
         selectionBox.style.display = 'none';
     };
+
+    const getCellCoordinates = (cell) => ({ rowIndex: cell.closest('tr').rowIndex, cellIndex: cell.cellIndex });
 
     const selectCellsInRect = (start, end) => {
         const startPos = getCellCoordinates(start);
@@ -809,7 +809,8 @@
             if (!row) continue;
             for (let c = c1; c <= c2; c++) {
                 const cell = row.cells[c];
-                if (!cell || cell.colSpan > 1 || cell.rowSpan > 1) continue; 
+                // colspan/rowspan 셀은 드래그 선택에서 제외 (단일 셀만 선택)
+                if (!cell || cell.colSpan > 1 || cell.rowSpan > 1 || cell.classList.contains('notice-row')) continue; 
                 cell.classList.add('selected');
                 selectedCells.add(cell);
             }
@@ -817,19 +818,19 @@
     };
 
     const updateSelectionBoxVisual = (start, end) => {
-        const wrapRect = document.querySelector('.wrap').getBoundingClientRect();
+        const wrapRect = wrap.getBoundingClientRect();
         const sRect = start.getBoundingClientRect();
         const eRect = end.getBoundingClientRect();
         
         const tableRect = table.getBoundingClientRect();
-        const wrapScrollLeft = document.querySelector('.wrap').scrollLeft;
-        const wrapScrollTop = document.querySelector('.wrap').scrollTop;
+        const wrapScrollLeft = wrap.scrollLeft;
+        const wrapScrollTop = wrap.scrollTop;
         
-        // 테이블 좌표를 기준으로 계산
-        const left = Math.min(sRect.left, eRect.left) - tableRect.left + wrapScrollLeft + 200; // 200px (Left Menu width) 보정
-        const top = Math.min(sRect.top, eRect.top) - tableRect.top + wrapScrollTop + wrapRect.top - 20; // wrap top padding 보정
-        const right = Math.max(sRect.right, eRect.right) - tableRect.left + wrapScrollLeft + 200;
-        const bottom = Math.max(sRect.bottom, eRect.bottom) - tableRect.top + wrapScrollTop + wrapRect.top - 20;
+        // 테이블 좌표를 기준으로 계산 + wrap의 스크롤 및 좌측 메뉴 보정 (200px)
+        const left = Math.min(sRect.left, eRect.left) - tableRect.left + wrapScrollLeft; 
+        const top = Math.min(sRect.top, eRect.top) - tableRect.top + wrapScrollTop; 
+        const right = Math.max(sRect.right, eRect.right) - tableRect.left + wrapScrollLeft;
+        const bottom = Math.max(sRect.bottom, eRect.bottom) - tableRect.top + wrapScrollTop;
 
         selectionBox.style.left = `${left}px`;
         selectionBox.style.top = `${top}px`;
@@ -838,19 +839,18 @@
         selectionBox.style.display = 'block';
     };
 
-    const getCellCoordinates = (cell) => ({ rowIndex: cell.closest('tr').rowIndex, cellIndex: cell.cellIndex });
-
-    // Mouse handlers
+    // Mouse handlers (Cell Drag Selection)
     const handleMouseDown = (e) => {
         // 리사이저 드래그 중이 아니며, 설정 패널이나 메뉴를 클릭하면 무시
         if (isResizingCol || isResizingRow || e.target.closest('.setting-panel') || e.target.closest('.left-menu')) return;
+        
         const cell = e.target.closest('td');
-        if (!cell) {
+        if (!cell || cell.contentEditable === 'false') {
              clearSelection();
-             return; // 테이블 밖이나 빈 공간 클릭 시 선택 해제
+             return; 
         }
 
-        // 텍스트를 드래그하는 것을 막기 위해 preventDefault
+        // 텍스트 드래그가 아닌 셀 선택 드래그를 시작
         e.preventDefault(); 
         
         startCell = cell;
@@ -863,12 +863,9 @@
         if (!startCell) return;
         isDragging = true;
         
-        // 드래그 중 스크롤 방지
-        e.preventDefault();
-
         const target = document.elementFromPoint(e.clientX, e.clientY);
         const cellUnder = target?.closest?.('td');
-        if (cellUnder && cellUnder !== endCell) {
+        if (cellUnder && cellUnder !== endCell && cellUnder.contentEditable !== 'false') {
             endCell = cellUnder;
             selectCellsInRect(startCell, endCell);
             updateSelectionBoxVisual(startCell, endCell);
@@ -880,7 +877,7 @@
         document.removeEventListener('mouseup', handleMouseUp);
         
         if (!isDragging && startCell) {
-            // 클릭만 한 경우 단일 선택 (handleMouseDown에서 preventDefault 했으므로 여기서 다시 선택)
+            // 클릭만 한 경우 단일 선택
             clearSelection();
             startCell.classList.add('selected');
             selectedCells.add(startCell);
@@ -891,20 +888,61 @@
         endCell = null;
     };
 
-    // Color palette render
+
+    // ===========================================
+    // 3. Menu Click Activation Logic (복구)
+    // ===========================================
+
+    // Left menu click handler (사용자님께서 '오른쪽 메뉴'라고 착각하셨을 가능성이 높음)
+    if (leftMenu) {
+        leftMenu.addEventListener('click', (e) => {
+            const li = e.target.closest('.left-item');
+            if (!li) return;
+            leftMenu.querySelectorAll('.left-item').forEach(it => it.classList.remove('active'));
+            li.classList.add('active');
+            if (menuIndicator) menuIndicator.textContent = `선택: ${li.textContent.trim()}`;
+        });
+    }
+
+    // Top sub menu click handler
+    if (topSubMenu) {
+        topSubMenu.addEventListener('click', (e) => {
+            const it = e.target.closest('.menu');
+            if (!it) return;
+            topSubMenu.querySelectorAll('.menu').forEach(m => m.classList.remove('active'));
+            it.classList.add('active');
+        });
+    }
+
+
+    // ===========================================
+    // 4. Color & Font Size Logic
+    // ===========================================
+
     const renderColorPalette = () => {
         COLOR_PALETTE.forEach(col => {
             const d = document.createElement('div');
             d.className = 'color-swatch';
             d.style.backgroundColor = col;
             d.title = col;
-            d.addEventListener('click', () => applyColorToSelection(col));
+            d.addEventListener('click', (e) => {
+                if (!adminMode) {
+                    alert('색상 변경은 관리자 모드(ON)에서만 가능합니다.');
+                    return;
+                }
+                applyColorToSelection(col);
+                e.stopPropagation(); // 버튼 클릭 이벤트 전파 방지
+            });
             colorPaletteContainer.appendChild(d);
         });
     };
 
     const applyColorToSelection = (color) => {
         const target = document.querySelector('input[name="colorTarget"]:checked').value;
+        if (selectedCells.size === 0) {
+            alert('셀을 먼저 드래그하여 선택해주세요.');
+            return;
+        }
         selectedCells.forEach(cell => {
             if (target === 'text') cell.style.color = color;
             else cell.style.backgroundColor = color;
@@ -914,14 +952,26 @@
 
     // Font size
     applyFontSizeBtn?.addEventListener('click', () => {
+        if (!adminMode) {
+            alert('글꼴 크기 적용은 관리자 모드(ON)에서만 가능합니다.');
+            return;
+        }
         const size = fontSizeInput.value + 'px';
+        if (selectedCells.size === 0) {
+            alert('셀을 먼저 드래그하여 선택해주세요.');
+            return;
+        }
         selectedCells.forEach(cell => cell.style.fontSize = size);
         if (autoSave) saveTableStateDebounced();
     });
 
     // Row height apply event
-    document.querySelectorAll('.height-apply-btn').forEach(btn => {
+    heightApplyBtns.forEach(btn => {
         btn.addEventListener('click', () => {
+            if (!adminMode) {
+                alert('행 높이 조절은 관리자 모드(ON)에서만 가능합니다.');
+                return;
+            }
             const target = btn.dataset.target;
             let inputId = `${target.replace('-data', 'RowHeightInput')}`;
             if (target === 'middle-notice') inputId = 'middleNoticeRowHeightInput';
@@ -933,35 +983,30 @@
         });
     });
 
+
     // ===========================================
-    // Table Structure & Resizing Logic
+    // 5. Table Structure & Resizing Logic (유지)
     // ===========================================
 
-    /**
-     * 테이블 구조를 완전히 새로 생성하거나 업데이트합니다.
-     */
     const generateInitialTable = (rowCount, colCount, defaultWidth, defaultHeight) => {
+        if (!adminMode) return alert('테이블 구조/크기 변경은 관리자 모드(ON)에서만 가능합니다.');
+        // ... (이전 코드의 generateInitialTable 로직 유지) ...
         const tbody = table.querySelector('tbody');
         if (!tbody) return;
 
         // 1. 기존 내용 비우기
         tbody.innerHTML = '';
         
-        // 2. 행 클래스 매핑 정의 (기존 테이블 구조를 최대한 재현)
+        // 2. 행 클래스 매핑 정의
         const ROW_CLASS_MAP = {
             0: 'top-notice-row',
             1: 'top-data-header',
-            2: 'top-data-row', 
-            3: 'top-data-row',
-            4: 'top-data-row',
-            5: 'top-data-row',
-            6: 'middle-notice-row',
-            7: 'bottom-data-header',
-            8: 'bottom-data-row', 
-            9: 'bottom-data-row',
-            10: 'bottom-data-row',
-            11: 'bottom-data-row',
-            default: 'bottom-data-row'
+            defaultTopData: 'top-data-row',
+            // 중간 공지행은 전체 행 수의 1/2 지점으로 이동
+            middleNotice: Math.floor(rowCount / 2),
+            defaultBottomData: 'bottom-data-row',
+            // 하단 헤더 행은 중간 공지행 다음으로 설정
+            bottomHeader: Math.floor(rowCount / 2) + 1,
         };
 
         const defaultWidthPx = `${defaultWidth}px`;
@@ -970,35 +1015,51 @@
 
         for (let r = 0; r < rowCount; r++) {
             const tr = document.createElement('tr');
-            tr.className = ROW_CLASS_MAP[r] || ROW_CLASS_MAP.default; 
-            tr.style.height = defaultHeightPx; // TR 높이 설정
+            let className;
 
-            const isFullWidthRow = tr.className.includes('notice-row') || tr.className.includes('header');
+            if (r === 0) {
+                className = 'top-notice-row';
+            } else if (r === 1) {
+                className = 'top-data-header';
+            } else if (r < ROW_CLASS_MAP.middleNotice) {
+                 className = ROW_CLASS_MAP.defaultTopData;
+            } else if (r === ROW_CLASS_MAP.middleNotice) {
+                 className = 'middle-notice-row';
+            } else if (r === ROW_CLASS_MAP.bottomHeader) {
+                 className = 'bottom-data-header';
+            } else {
+                 className = ROW_CLASS_MAP.defaultBottomData;
+            }
             
-            if (isFullWidthRow && colCount > 1) {
+            tr.className = className;
+            tr.style.height = defaultHeightPx;
+
+            const isFullWidthRow = className.includes('notice-row') || className.includes('header');
+            
+            if (isFullWidthRow) {
                 const td = document.createElement('td');
-                if (tr.className === 'top-notice-row') {
+                if (className === 'top-notice-row') {
                     td.innerHTML = '<span class="top-notice-mark">DAMAGE!</span> 주의사항';
-                } else if (tr.className.includes('header')) {
-                    td.innerHTML = `${tr.className.split('-')[0]} 데이터 헤더`;
+                } else if (className.includes('header')) {
+                    td.innerHTML = `${className.split('-')[0]} 데이터 헤더`;
                 } else {
-                     td.innerHTML = `${tr.className.split('-')[0]} 내용 영역`;
+                     td.innerHTML = `${className.split('-')[0]} 내용 영역`;
                 }
                 
-                td.contentEditable = tr.className.includes('notice-row') ? 'true' : 'false';
+                td.contentEditable = adminMode ? 'true' : 'false';
                 td.setAttribute('colspan', colCount);
                 td.style.height = '100%'; 
-                td.style.lineHeight = defaultLineHeight;
+                td.style.lineHeight = className === 'middle-notice-row' ? '1.4' : defaultLineHeight;
                 tr.appendChild(td);
             } else {
                 for (let c = 0; c < colCount; c++) {
                     const td = document.createElement('td');
-                    td.innerHTML = `${r + 1}-${c + 1}`; 
+                    td.innerHTML = `(${r}-${c})`; 
                     td.contentEditable = adminMode ? 'true' : 'false';
 
                     td.style.width = defaultWidthPx;
                     td.style.minWidth = defaultWidthPx; 
-                    td.style.height = '100%'; // TD 높이는 TR 높이를 따르게
+                    td.style.height = '100%'; 
                     td.style.lineHeight = defaultLineHeight;
 
                     tr.appendChild(td);
@@ -1008,6 +1069,7 @@
             tbody.appendChild(tr);
         }
         
+        // 초기 로드 시 높이 적용
         document.querySelectorAll('.height-apply-btn').forEach(btn => {
             const target = btn.dataset.target;
             let inputId = `${target.replace('-data', 'RowHeightInput')}`;
@@ -1016,23 +1078,32 @@
             if (input) applyRowHeight(target, input.value);
         });
 
-        // 테이블 생성 후 리사이저 추가
         addResizersToTable();
         
         if (autoSave) saveTableStateDebounced();
     };
     
-    // 리사이저 DOM을 테이블에 삽입하는 함수
+    // 테이블 구조 변경 버튼 이벤트 리스너 (기존 기능 유지)
+    applyTableStructureBtn?.addEventListener('click', () => {
+        const rowCount = parseInt(newRowCountInput.value, 10) || 5;
+        const colCount = parseInt(newColCountInput.value, 10) || 5;
+        const colWidth = parseInt(defaultColWidthInput.value, 10) || 120;
+        const rowHeight = parseInt(defaultRowHeightInput.value, 10) || 25;
+        
+        generateInitialTable(rowCount, colCount, colWidth, rowHeight);
+    });
+
+    // 리사이저 DOM을 테이블에 삽입하는 함수 (유지)
     const addResizersToTable = () => {
         // 기존 리사이저 제거
         table.querySelectorAll('.col-resizer, .row-resizer').forEach(r => r.remove());
 
-        // 1. Column Resizers (데이터 행에만 적용)
+        // 1. Column Resizers
         table.querySelectorAll('tr').forEach((row, rowIndex) => {
-            if (row.className.includes('notice-row')) return; // 공지/제목 행 제외
+            if (row.className.includes('notice-row')) return; 
 
             row.querySelectorAll('td').forEach((td, colIndex) => {
-                // 각 열의 첫 번째 셀에만 리사이저를 추가
+                // 각 열의 첫 번째 데이터/헤더 셀에만 리사이저를 추가
                 if (rowIndex === 1 || row.className.includes('bottom-data-header')) {
                     if (colIndex < row.cells.length - 1) {
                         const resizer = document.createElement('div');
@@ -1044,8 +1115,7 @@
                 }
             });
             
-            // 2. Row Resizers (데이터 행 및 헤더 행에 적용)
-            // 마지막 행에는 리사이저를 추가하지 않음
+            // 2. Row Resizers
             if (rowIndex < table.rows.length - 1 && !row.className.includes('notice-row')) {
                 const resizer = document.createElement('div');
                 resizer.className = 'row-resizer';
@@ -1057,11 +1127,10 @@
         });
     };
 
-
-    // 컬럼 리사이즈 시작 핸들러
+    // 컬럼 리사이즈 시작 핸들러 (유지)
     const handleColResizeMouseDown = (e) => {
         if (!adminMode) {
-             alert('컬럼 크기 조절은 관리자 모드에서만 가능합니다.');
+             alert('컬럼 크기 조절은 관리자 모드(ON)에서만 가능합니다.');
              return;
         }
         e.preventDefault();
@@ -1075,17 +1144,16 @@
         const headerRow = table.querySelector('.top-data-header'); 
         const targetCell = headerRow.cells[colIndex];
         
-        // inline style이 없으면 현재 너비를 시작 너비로 사용
         startWidth = parseInt(targetCell.style.width) || targetCell.offsetWidth;
         
         document.addEventListener('mousemove', handleResizeMouseMove);
         document.addEventListener('mouseup', handleResizeMouseUp);
     };
     
-    // 행 리사이즈 시작 핸들러
+    // 행 리사이즈 시작 핸들러 (유지)
     const handleRowResizeMouseDown = (e) => {
         if (!adminMode) {
-             alert('행 크기 조절은 관리자 모드에서만 가능합니다.');
+             alert('행 크기 조절은 관리자 모드(ON)에서만 가능합니다.');
              return;
         }
         e.preventDefault();
@@ -1102,11 +1170,11 @@
         document.addEventListener('mouseup', handleResizeMouseUp);
     };
     
-    // 리사이즈 드래그 핸들러
+    // 리사이즈 드래그 핸들러 (유지)
     const handleResizeMouseMove = (e) => {
         if (isResizingCol) {
             const dx = e.clientX - startX;
-            let newWidth = Math.max(50, startWidth + dx); // 최소 너비 50px
+            let newWidth = Math.max(50, startWidth + dx);
 
             const rect = resizingElement.getBoundingClientRect();
             resizerDisplay.textContent = `W: ${Math.round(newWidth)}px`;
@@ -1128,7 +1196,7 @@
 
         } else if (isResizingRow) {
             const dy = e.clientY - startY;
-            let newHeight = Math.max(20, startHeight + dy); // 최소 높이 20px
+            let newHeight = Math.max(20, startHeight + dy);
             
             const rect = resizingElement.getBoundingClientRect();
             resizerDisplay.textContent = `H: ${Math.round(newHeight)}px`;
@@ -1139,12 +1207,15 @@
             const targetRow = resizingElement.closest('tr');
             targetRow.style.height = `${newHeight}px`;
             targetRow.querySelectorAll('td').forEach(cell => {
-                cell.style.lineHeight = `${newHeight - 10}px`;
+                // 공지/제목 행이 아니면 line-height를 조절
+                if (!targetRow.className.includes('notice-row')) {
+                    cell.style.lineHeight = `${newHeight - 10}px`;
+                }
             });
         }
     };
 
-    // 리사이즈 종료 핸들러
+    // 리사이즈 종료 핸들러 (유지)
     const handleResizeMouseUp = () => {
         document.removeEventListener('mousemove', handleResizeMouseMove);
         document.removeEventListener('mouseup', handleResizeMouseUp);
@@ -1163,38 +1234,249 @@
             document.querySelector('#colResizeStyle')?.remove();
             isResizingCol = false;
         } else if (isResizingRow) {
-             // Row height는 TR에 직접 적용되었으므로, 저장 로직만 실행
              isResizingRow = false;
         }
         
         resizingElement = null;
         resizerDisplay.style.opacity = 0;
         
-        // 최종 크기 변경 사항을 저장
         if (adminMode && autoSave) {
             saveTableStateImmediate();
         }
     };
-    
-    // 테이블 구조 변경 버튼 이벤트 리스너 (기존 기능 유지)
-    applyTableStructureBtn?.addEventListener('click', () => {
-        const rowCount = parseInt(newRowCountInput.value, 10) || 5;
-        const colCount = parseInt(newColCountInput.value, 10) || 5;
-        const colWidth = parseInt(defaultColWidthInput.value, 10) || 120;
-        const rowHeight = parseInt(defaultRowHeightInput.value, 10) || 25;
-        
-        generateInitialTable(rowCount, colCount, colWidth, rowHeight);
-    });
-
-    // 열 너비 자동 맞춤 기능 (버튼은 있으나 복잡하여 현재는 경고만 표시)
-    const autoFitColumns = () => {
-        alert("열 너비 자동 맞춤 기능은 로직이 복잡하여 현재는 동작하지 않습니다. 수동으로 너비를 조정해 주세요.");
-    };
-
-    autoFitBtn?.addEventListener('click', autoFitColumns);
 
     // ===========================================
-    // Initialization
+    // 6. Tool Button Logic (복구)
+    // ===========================================
+    
+    /** 관리자 모드 토글 및 UI 업데이트 */
+    const updateAdminMode = (newMode) => {
+        adminMode = newMode;
+        
+        // 1. 테이블 셀 contentEditable 속성 변경
+        table.querySelectorAll('td').forEach(td => {
+            // notice-row는 무조건 false로 유지 (colspan 때문)
+            if (td.closest('tr')?.className?.includes('notice-row')) {
+                 td.contentEditable = 'false';
+            } else {
+                 td.contentEditable = newMode ? 'true' : 'false';
+            }
+        });
+
+        // 2. 버튼 활성화/비활성화
+        const buttons = [
+            saveNowBtn, copyBtn, pasteBtn, addRowBtn, addColBtn, 
+            deleteRowBtn, deleteColBtn, autoFitBtn, applyTableStructureBtn,
+            applyFontSizeBtn
+        ];
+        buttons.forEach(btn => {
+            if (btn) btn.disabled = !newMode;
+        });
+
+        heightApplyBtns.forEach(btn => btn.disabled = !newMode);
+        
+        // 3. 토글 버튼 텍스트 및 스타일 변경
+        toggleAdminBtn.textContent = `관리자 모드: ${newMode ? 'ON' : 'OFF'}`;
+        toggleAdminBtn.style.background = newMode ? '#3c3' : '#a33';
+
+        if (!newMode) clearSelection(); // 관리자 모드 해제 시 선택 해제
+        if (autoSave) saveTableStateImmediate(); // 상태 저장
+    };
+
+    toggleAdminBtn?.addEventListener('click', () => {
+        updateAdminMode(!adminMode);
+        alert(`관리자 모드: ${adminMode ? '활성화' : '비활성화'}. ${adminMode ? '이제 테이블 편집 및 도구 사용이 가능합니다.' : '테이블이 읽기 전용 상태입니다.'}`);
+    });
+
+    autoSaveToggleBtn?.addEventListener('click', () => {
+        autoSave = !autoSave;
+        autoSaveToggleBtn.textContent = `자동저장: ${autoSave ? 'ON' : 'OFF'}`;
+        autoSaveToggleBtn.style.background = autoSave ? '#007bff' : '#444';
+        if (autoSave) saveTableStateImmediate();
+    });
+
+    saveNowBtn?.addEventListener('click', () => {
+        if (!adminMode) return alert('저장 기능은 관리자 모드(ON)에서만 가능합니다.');
+        saveTableStateImmediate();
+        alert('현재 테이블 상태가 저장되었습니다.');
+    });
+
+    // Copy/Paste Logic (복구)
+    copyBtn?.addEventListener('click', () => {
+        if (!adminMode) return alert('복사 기능은 관리자 모드(ON)에서만 가능합니다.');
+        if (selectedCells.size === 0) return alert('복사할 셀을 먼저 선택해주세요.');
+        clipboard = Array.from(selectedCells).map(cell => ({
+            text: cell.innerHTML,
+            color: cell.style.color,
+            bg: cell.style.backgroundColor,
+            fontSize: cell.style.fontSize,
+        }));
+        alert(`${selectedCells.size}개의 셀이 복사되었습니다.`);
+    });
+
+    pasteBtn?.addEventListener('click', () => {
+        if (!adminMode) return alert('붙여넣기 기능은 관리자 모드(ON)에서만 가능합니다.');
+        if (clipboard.length === 0) return alert('복사된 데이터가 없습니다.');
+        if (selectedCells.size !== clipboard.length) return alert('선택된 셀의 개수와 복사된 셀의 개수가 일치하지 않습니다. 복사된 영역과 동일한 크기의 영역을 선택해주세요.');
+
+        Array.from(selectedCells).forEach((cell, index) => {
+            const data = clipboard[index];
+            cell.innerHTML = data.text;
+            cell.style.color = data.color;
+            cell.style.backgroundColor = data.bg;
+            cell.style.fontSize = data.fontSize;
+        });
+        if (autoSave) saveTableStateDebounced();
+        alert('데이터가 붙여넣기되었습니다.');
+    });
+
+    // Row/Column Manipulation Logic (복구)
+    const addRow = (position) => {
+        if (!adminMode) return alert('행 추가는 관리자 모드(ON)에서만 가능합니다.');
+        const tbody = table.querySelector('tbody');
+        const rows = tbody.querySelectorAll('tr');
+        if (selectedCells.size === 0) return alert('추가할 위치를 지정할 셀을 하나 선택해주세요.');
+        
+        const firstSelectedRowIndex = getCellCoordinates(Array.from(selectedCells)[0]).rowIndex;
+        const targetRow = rows[firstSelectedRowIndex];
+        const numCols = targetRow.querySelectorAll('td').length;
+        
+        const newRow = document.createElement('tr');
+        newRow.className = 'bottom-data-row'; // 기본적으로 bottom-data-row 클래스 적용
+        
+        for (let c = 0; c < numCols; c++) {
+            const newCell = document.createElement('td');
+            newCell.innerHTML = '';
+            newCell.contentEditable = 'true';
+            newRow.appendChild(newCell);
+        }
+
+        if (position === 'after') {
+            targetRow.after(newRow);
+        } else {
+            targetRow.before(newRow);
+        }
+        
+        addResizersToTable();
+        if (autoSave) saveTableStateDebounced();
+        alert('행이 추가되었습니다.');
+    };
+
+    const deleteRow = () => {
+        if (!adminMode) return alert('행 삭제는 관리자 모드(ON)에서만 가능합니다.');
+        if (selectedCells.size === 0) return alert('삭제할 행의 셀을 선택해주세요.');
+        
+        const rowsToDelete = new Set();
+        Array.from(selectedCells).forEach(cell => {
+            const row = cell.closest('tr');
+            if (row && !row.className.includes('header') && !row.className.includes('notice')) {
+                rowsToDelete.add(row);
+            }
+        });
+        
+        if (rowsToDelete.size === 0) return alert('데이터 행을 선택해주세요. (헤더/공지 행은 삭제할 수 없습니다.)');
+        
+        if (confirm(`${rowsToDelete.size}개의 행을 삭제하시겠습니까?`)) {
+            rowsToDelete.forEach(row => row.remove());
+            clearSelection();
+            addResizersToTable();
+            if (autoSave) saveTableStateDebounced();
+            alert('행이 삭제되었습니다.');
+        }
+    };
+
+    addRowBtn?.addEventListener('click', () => addRow('after'));
+    deleteRowBtn?.addEventListener('click', deleteRow);
+
+    // Column add/delete is more complex and usually handled via structure change, 
+    // but the simple delete logic can be added back.
+    const addColumn = () => {
+        if (!adminMode) return alert('열 추가는 관리자 모드(ON)에서만 가능합니다.');
+        if (selectedCells.size === 0) return alert('추가할 위치를 지정할 셀을 하나 선택해주세요.');
+        
+        const firstSelectedCell = Array.from(selectedCells)[0];
+        const colIndex = getCellCoordinates(firstSelectedCell).cellIndex;
+        
+        table.querySelectorAll('tr').forEach(row => {
+            const cells = row.querySelectorAll('td');
+            // notice/header row는 colspan 때문에 처리하지 않음. 테이블 구조 변경을 통해 처리해야 함.
+            if (row.className.includes('notice-row') || row.className.includes('header')) return; 
+
+            if (cells.length > colIndex) {
+                const newCell = document.createElement('td');
+                newCell.innerHTML = '';
+                newCell.contentEditable = 'true';
+                cells[colIndex].after(newCell);
+            }
+        });
+
+        addResizersToTable();
+        if (autoSave) saveTableStateDebounced();
+        alert('열이 추가되었습니다. (Full width 행의 colspan은 수동으로 조정해주세요)');
+    };
+
+    const deleteColumn = () => {
+        if (!adminMode) return alert('열 삭제는 관리자 모드(ON)에서만 가능합니다.');
+        if (selectedCells.size === 0) return alert('삭제할 열의 셀을 선택해주세요.');
+        
+        const selectedColumns = new Set();
+        Array.from(selectedCells).forEach(cell => {
+            const colIndex = getCellCoordinates(cell).cellIndex;
+            selectedColumns.add(colIndex);
+        });
+        
+        if (selectedColumns.size !== 1) return alert('삭제할 열이 속한 셀을 한 열에 대해서만 선택해주세요.');
+
+        const colIndexToDelete = Array.from(selectedColumns)[0];
+        
+        if (confirm(`${colIndexToDelete + 1}번째 열을 삭제하시겠습니까? (공지/헤더 행의 colspan을 수동으로 조정해야 합니다)`)) {
+            table.querySelectorAll('tr').forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (cells[colIndexToDelete] && !row.className.includes('notice-row') && !row.className.includes('header')) {
+                    cells[colIndexToDelete].remove();
+                }
+            });
+            clearSelection();
+            addResizersToTable();
+            if (autoSave) saveTableStateDebounced();
+            alert('열이 삭제되었습니다.');
+        }
+    };
+    
+    addColBtn?.addEventListener('click', addColumn);
+    deleteColBtn?.addEventListener('click', deleteColumn);
+    
+    // Auto-Fit (기존 경고 유지)
+    autoFitBtn?.addEventListener('click', () => {
+         if (!adminMode) return alert('자동 맞춤 기능은 관리자 모드(ON)에서만 가능합니다.');
+        alert("열 너비 자동 맞춤 기능은 로직이 복잡하여 현재는 동작하지 않습니다. 수동으로 너비를 조정해 주세요.");
+    });
+
+
+    // ===========================================
+    // 7. Download Logic (유지)
+    // ===========================================
+    const downloadTableImage = (full) => {
+        html2canvas(document.getElementById('capture-area'), {
+            scale: 2, 
+            backgroundColor: '#1a1a1a',
+            allowTaint: true,
+            useCORS: true,
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png');
+            link.download = 'nobless_data_status.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+    };
+    downloadBtn?.addEventListener('click', () => downloadTableImage(false));
+    downloadFullBtn?.addEventListener('click', () => downloadTableImage(true));
+
+
+    // ===========================================
+    // 8. Initialization
     // ===========================================
 
     const init = () => {
@@ -1207,12 +1489,14 @@
         
         newRowCountInput.value = initialRowCount;
         newColCountInput.value = initialColCount;
+        // 초기 테이블 너비/높이를 DOM에서 읽어와 기본값으로 설정하는 로직은 복잡하여 하드코딩 값 유지
         defaultColWidthInput.value = 120;
         defaultRowHeightInput.value = 25;
 
         // 테이블 초기화 및 데이터 로드 시작
         initAuth();
-        addResizersToTable(); // 초기 테이블에 리사이저 추가
+        addResizersToTable(); 
+        updateAdminMode(false); // 초기 상태는 관리자 모드 OFF로 설정
     };
 
     init();
