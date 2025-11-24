@@ -12,9 +12,9 @@ body {
 
 .wrap {
     flex-grow: 1;
-    padding: 20px 20px 20px 180px; /* 왼쪽 메뉴 공간 확보 */
+    padding: 20px 20px 20px 180px;
     position: relative;
-    /* max-width: calc(100vw - 320px); */ /* 이미지 다운로드 시 잘림 방지를 위해 제거 (app.js에서 동적으로 처리 예정) */
+    max-width: calc(100vw - 320px);
     overflow: auto;
 }
 
@@ -87,23 +87,15 @@ body {
     background-color: #45a049;
 }
 
-.small-btn { 
-    padding: 6px 8px; 
-    background: #444;
-    color: #fff;
-    border-radius: 4px;
-    border: none;
-    cursor: pointer;
-    white-space: nowrap; /* 버튼 텍스트가 잘리지 않도록 */
-}
+.small-btn { padding:6px 8px; background:#444;color:#fff;border-radius:4px;border:none;cursor:pointer }
 .small-btn:hover{background:#555}
 
 /* Menu Styling */
 .top-sub-menu {
     display: flex;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
     border-bottom: 2px solid #555;
-    padding-bottom: 10px;
+    padding-bottom: 8px;
 }
 
 .menu {
@@ -117,6 +109,7 @@ body {
 .menu:hover {
     color: #fff;
 }
+.menu.active { color: #fff; font-weight: 600; border-bottom: 2px solid #ffdd66; padding-bottom: 6px; }
 
 .left-menu {
     position: fixed;
@@ -127,8 +120,6 @@ body {
     background-color: #222;
     padding: 20px 0;
     box-shadow: 3px 0 10px rgba(0, 0, 0, 0.5);
-    z-index: 90; /* 테이블보다 아래, 패널보다 위 */
-    overflow-y: auto; /* 왼쪽 메뉴가 길어질 경우 스크롤 가능하게 */
 }
 
 .left-item {
@@ -144,6 +135,17 @@ body {
     background-color: #333;
     border-left-color: #ffdd66;
     color: #fff;
+}
+
+/* menu indicator */
+.menu-indicator {
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    background: rgba(255,221,102,0.06);
+    color: #ffdd66;
+    border-radius: 6px;
+    font-weight: 600;
+    display: inline-block;
 }
 
 /* Table Styling */
@@ -164,7 +166,7 @@ body {
     text-overflow: ellipsis;
     position: relative;
     line-height: 1;
-    height: 15px; /* 기본 행 높이 (data-row 기준) */
+    height: 15px;
     box-sizing: border-box;
     transition: background-color 0.1s, border-color 0.1s;
 }
@@ -176,7 +178,7 @@ body {
     font-weight: bold;
     text-align: left;
     padding: 8px 12px;
-    height: 30px; /* 기본값 설정, JS에서 변경될 수 있음 */
+    height: 25px;
 }
 .top-notice-mark {
     color: #ffdd66;
@@ -187,7 +189,7 @@ body {
     background-color: #444;
     color: #fff;
     font-weight: bold;
-    height: 30px; /* 기본값 설정, JS에서 변경될 수 있음 */
+    height: 30px;
     min-width: 80px;
 }
 
@@ -197,13 +199,12 @@ body {
     text-align: left;
     font-size: 0.9em;
     line-height: 1.4;
-    height: 50px; /* 기본값 설정, JS에서 변경될 수 있음 */
+    height: 50px;
 }
 
 .bottom-data-row td {
     background-color: #333;
     color: #ddd;
-    height: 15px; /* 기본값 설정, JS에서 변경될 수 있음 */
 }
 
 /* Editable Content Styling */
@@ -233,3 +234,9 @@ body {
 .col-resizer { position: absolute; right: -4px; top: 0; width: 8px; height: 100%; cursor: col-resize; z-index: 20; }
 .row-resizer { position: absolute; bottom: -4px; right: 0; width: 100%; height: 8px; cursor: row-resize; z-index: 20; }
 .resizer-display { position: fixed; padding: 5px 10px; background: rgba(0, 0, 0, 0.8); color: #ffdd66; border-radius: 4px; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 101; font-size: 0.8em; white-space: nowrap; }
+
+/* small responsive fix */
+@media (max-width: 900px) {
+    .wrap { padding-left: 20px; }
+    .left-menu { display: none; }
+}
