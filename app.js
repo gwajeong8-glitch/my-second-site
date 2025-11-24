@@ -1,12 +1,14 @@
-// app.js
-// Firebase SDK import (app.js 내에서 직접 로드)
+// app.js (완성본, module)
+// Firebase SDK import (앱에서 type="module"으로 로드해야 함)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// --- Firebase 설정 정보 (여기에 자신의 Firebase 프로젝트 설정을 붙여넣으세요) ---
+/* -------------------------
+   Firebase 설정 (기본값은 네가 제공한 값 유지)
+   필요시 프로젝트 정보 바꿔 넣어 사용
+   ------------------------- */
 const firebaseConfig = {
-
     apiKey: "AIzaSyBSkdUP_bU60GiLY6w9Uo7e8g_pkLllFPg",
     authDomain: "my-nonono3.firebaseapp.com",
     projectId: "my-nonono3",
@@ -15,32 +17,31 @@ const firebaseConfig = {
     appId: "1:167865896202:web:2567994bd29509f9d6fef3",
     measurementId: "G-T126HT4T7X"
 };
-
-
-// 앱 ID는 Firestore 문서 경로에 사용될 수 있습니다 (필요에 따라)
 const appId = firebaseConfig.appId;
-
-// Firebase 초기화
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-const TABLE_DOC_ID = 'main_table_state'; // Firestore에 저장될 문서 ID
-
+const TABLE_DOC_ID = 'main_table_state';
 let currentUserId = null;
 let isAuthReady = false;
-let initialLoadDone = false; // 최초 데이터 로드 여부 플래그
+let initialLoadDone = false;
 
-// --- DOM 요소 참조 ---
+/* DOM refs */
 const table = document.querySelector('.data-table');
 const colorPaletteContainer = document.getElementById('colorPaletteContainer');
 const applyFontSizeBtn = document.getElementById('applyFontSizeBtn');
 const fontSizeInput = document.getElementById('fontSizeInput');
-const downloadButton = document.getElementById('downloadBtn');
+const downloadFullBtn = document.getElementById('downloadFullBtn');
 const selectionBox = document.getElementById('selectionBox');
-const settingPanel = document.getElementById('settingPanel');
 
-// --- 상수 ---
+const leftMenu = document.getElementById('leftMenu');
+
+const autoSaveToggleBtn = document.getElementById('autoSaveToggleBtn');
+const saveNowBtn = document.getElementById('saveNowBtn');
+const downloadBtn = document.getElementById('downloadBtn');
+
+/* color palette */
 const COLOR_PALETTE = [
     '#FFFFFF', '#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#00FFFF', '#FF00FF',
     '#FFA500', '#800080', '#008000', '#808000', '#000080', '#800000', '#C0C0C0', '#808080',
@@ -49,31 +50,30 @@ const COLOR_PALETTE = [
     '#5F9EA0', '#DDA0DD', '#7FFF00', '#6495ED', '#DC143C', '#FF8C00', '#9ACD32', '#40E0D0'
 ];
 
-// --- 드래그 선택 관련 변수 ---
+/* Selection state */
 let isDragging = false;
 let startCell = null;
 let endCell = null;
+let selectedCells = new Set();
+let autoSave = false;
+let autoSaveDebounceMs = 800;
+let saveTimer = null;
 
-// --- Firebase 인증 및 데이터 로드/저장 ---
-
-// Firestore 문서 참조 경로 생성 함수
-const getTableDocRef = (userId) => {
-    // artifacts 컬렉션은 앱별로 고유한 데이터를 구분하기 위함.
-    // users 컬렉션은 사용자별 데이터를 구분하기 위함.
-    return doc(db, 'artifacts', appId, 'users', userId, 'table_data', TABLE_DOC_ID);
+/* -------------------------
+   Helpers
+   ------------------------- */
+const debounce = (fn, ms) => {
+    return (...args) => {
+        if (saveTimer) clearTimeout(saveTimer);
+        saveTimer = setTimeout(() => fn(...args), ms);
+    };
 };
 
-// 테이블 상태를 Firebase에 저장
-const saveTableState = async () => {
-    if (!currentUserId || !isAuthReady) {
-        // console.warn("Cannot save state: Auth not ready or user ID is null.");
-        return;
-    }
+const getTableDocRef = (userId) => doc(db, 'artifacts', appId, 'users', userId, 'table_data', TABLE_DOC_ID);
 
+/* Serialize current table into a savable object */
+const serializeTableState = () => {
     const cellStates = {};
-    const rowHeights = {};
-    
-    // 1. 셀 내용 및 스타일 저장
     const rows = table.querySelectorAll('tr');
     rows.forEach((row, rIndex) => {
         row.querySelectorAll('td').forEach((cell, cIndex) => {
@@ -87,7 +87,7 @@ const saveTableState = async () => {
         });
     });
 
-    // 2. 행 그룹 높이 저장
+    const rowHeights = {};
     document.querySelectorAll('.height-apply-btn').forEach(button => {
         const target = button.dataset.target;
         let inputId = `${target.replace('-data', 'RowHeightInput')}`;
@@ -96,22 +96,32 @@ const saveTableState = async () => {
         if (input) rowHeights[target] = input.value;
     });
 
-    const tableState = {
-        cells: cellStates,
-        rowHeights: rowHeights,
-        timestamp: new Date()
-    };
-    
-    try {
-        await setDoc(getTableDocRef(currentUserId), tableState, { merge: true });
-        // console.log("Table state saved successfully.");
-    } catch (e) {
-        console.error("Error saving table state: ", e);
-    }
+    return { cells: cellStates, rowHeights, timestamp: new Date().toISOString() };
 };
 
-// 로드된 상태를 테이블에 적용
+const saveTableStateImmediate = async () => {
+    if (!currentUserId || !isAuthReady) {
+        // fallback: localStorage
+        try {
+            localStorage.setItem('noblesse_table_snapshot', JSON.stringify(serializeTableState()));
+            console.log('Saved to localStorage (auth not ready).');
+        } catch (e) {
+            console.error('Local save failed', e);
+        }
+        return;
+    }
+    try {
+        await setDoc(getTableDocRef(currentUserId), serializeTableState(), { merge: true });
+        console.log('Saved to Firestore');
+    } catch (e) {
+        console.error('Save error', e);
+    }
+};
+const saveTableStateDebounced = debounce(saveTableStateImmediate, autoSaveDebounceMs);
+
+/* Apply loaded state from DB/local */
 const applyLoadedState = (data) => {
+    if (!data) return;
     if (data.cells) {
         const rows = table.querySelectorAll('tr');
         rows.forEach((row, rIndex) => {
@@ -127,143 +137,390 @@ const applyLoadedState = (data) => {
             });
         });
     }
-
     if (data.rowHeights) {
         for (const [key, value] of Object.entries(data.rowHeights)) {
             let inputId = `${key.replace('-data', 'RowHeightInput')}`;
             if (key === 'middle-notice') inputId = 'middleNoticeRowHeightInput';
             const input = document.getElementById(inputId);
             if (input) input.value = value;
-            applyRowHeight(key, value); // 실제 높이 적용 함수 호출
+            applyRowHeightGroup(key, value);
         }
     }
-    clearSelection(); // 모든 선택 해제
+    clearSelection();
 };
 
-// Firebase에서 테이블 상태 로드 및 실시간 감지
+/* Listen live document in Firestore */
 const loadTableState = (userId) => {
     const docRef = getTableDocRef(userId);
-
     onSnapshot(docRef, (docSnap) => {
         if (docSnap.exists()) {
-            const data = docSnap.data();
-            applyLoadedState(data);
+            applyLoadedState(docSnap.data());
         } else if (!initialLoadDone) {
-            // 문서가 없으면 초기 상태를 저장
-            saveTableState(); 
+            saveTableStateImmediate();
         }
-        initialLoadDone = true; // 최초 로드 완료 플래그 설정
-    }, (error) => console.error("Error listening to state changes:", error));
+        initialLoadDone = true;
+    }, (error) => console.error('Listen error', error));
 };
 
-// Firebase 인증 초기화 및 상태 변경 감지
+/* Auth init (anonymous) */
 const initAuth = async () => {
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUserId = user.uid;
         } else {
             try {
-                // 사용자가 없으면 익명 로그인 시도
                 await signInAnonymously(auth);
                 currentUserId = auth.currentUser.uid;
-            } catch (error) {
-                console.error("Anonymous sign-in failed.", error);
+            } catch (e) {
+                console.error('Auth failed', e);
                 return;
             }
         }
-        
-        // 인증 준비 완료 (최초 1회만 실행)
         if (currentUserId && !isAuthReady) {
             isAuthReady = true;
-            console.log("Firebase Auth ready. User ID:", currentUserId);
-            loadTableState(currentUserId); // 인증 완료 후 데이터 로드 시작
+            loadTableState(currentUserId);
         }
     });
 };
 
-// --- UI 로직: 드래그 선택 및 스타일 적용 ---
-
-const getCellCoordinates = (cell) => {
-    const rowIndex = cell.closest('tr').rowIndex;
-    const cellIndex = cell.cellIndex;
-    return { rowIndex, cellIndex };
-};
-
+/* -------------------------
+   Selection utilities (drag to select cells)
+   ------------------------- */
 const clearSelection = () => {
-    document.querySelectorAll('.data-table td.selected').forEach(cell => {
-        cell.classList.remove('selected');
-    });
+    selectedCells.forEach(td => td.classList.remove('selected'));
+    selectedCells.clear();
     selectionBox.style.display = 'none';
 };
 
-// 드래그 시작
-const handleDragStart = (e) => {
-    // 설정 패널이나 입력 필드 클릭 시 드래그 방지
-    if (e.target.closest('.setting-panel') || e.target.tagName === 'INPUT') { 
-        return;
+const getCellCoordinates = (cell) => ({ rowIndex: cell.closest('tr').rowIndex, cellIndex: cell.cellIndex });
+
+const selectCellsInRect = (start, end) => {
+    const startPos = getCellCoordinates(start);
+    const endPos = getCellCoordinates(end);
+    const r1 = Math.min(startPos.rowIndex, endPos.rowIndex);
+    const r2 = Math.max(startPos.rowIndex, endPos.rowIndex);
+    const c1 = Math.min(startPos.cellIndex, endPos.cellIndex);
+    const c2 = Math.max(startPos.cellIndex, endPos.cellIndex);
+
+    clearSelection();
+    for (let r = r1; r <= r2; r++) {
+        const row = table.rows[r];
+        if (!row) continue;
+        for (let c = c1; c <= c2; c++) {
+            const cell = row.cells[c];
+            if (!cell) continue;
+            cell.classList.add('selected');
+            selectedCells.add(cell);
+        }
     }
-    
+};
+
+const updateSelectionBoxVisual = (start, end) => {
+    const wrapRect = document.querySelector('.wrap').getBoundingClientRect();
+    const sRect = start.getBoundingClientRect();
+    const eRect = end.getBoundingClientRect();
+    const left = Math.min(sRect.left, eRect.left) - wrapRect.left + document.querySelector('.wrap').scrollLeft;
+    const top = Math.min(sRect.top, eRect.top) - wrapRect.top + document.querySelector('.wrap').scrollTop;
+    const right = Math.max(sRect.right, eRect.right) - wrapRect.left + document.querySelector('.wrap').scrollLeft;
+    const bottom = Math.max(sRect.bottom, eRect.bottom) - wrapRect.top + document.querySelector('.wrap').scrollTop;
+    selectionBox.style.left = `${left}px`;
+    selectionBox.style.top = `${top}px`;
+    selectionBox.style.width = `${right - left}px`;
+    selectionBox.style.height = `${bottom - top}px`;
+    selectionBox.style.display = 'block';
+};
+
+/* Mouse handlers */
+const handleMouseDown = (e) => {
+    if (e.target.closest('.setting-panel')) return;
     const cell = e.target.closest('td');
     if (!cell) return;
 
-    // 편집 가능한 셀 클릭 시: Ctrl/Meta 키가 없으면 일단 텍스트 편집으로 간주
-    if (cell.isContentEditable && !e.ctrlKey && !e.metaKey) {
-         startCell = cell;
-         document.addEventListener('mousemove', handleDraggingCheck); // 드래그 시작 감지
-         document.addEventListener('mouseup', handleDragEndCleanup); // 단순 클릭 종료 감지
-         return;
-    }
-
-    e.preventDefault(); // 기본 텍스트 선택 방지
-    startDragSelection(cell, e.shiftKey);
-};
-
-// 마우스 움직임 감지하여 드래그 시작 여부 결정
-const handleDraggingCheck = (e) => {
-    // 충분히 움직였을 때만 드래그로 간주 (마우스 약간만 움직여도 드래그되는 것 방지)
-    if (startCell && (Math.abs(e.movementX) > 2 || Math.abs(e.movementY) > 2)) {
-        isDragging = true; 
-        document.removeEventListener('mousemove', handleDraggingCheck);
-        document.removeEventListener('mouseup', handleDragEndCleanup);
-        
-        window.getSelection()?.removeAllRanges(); // 기존 텍스트 선택 해제
-        
-        startDragSelection(startCell, false); // 드래그 선택 시작 (shift키 없음)
-        handleDragging(e); // 첫 움직임 처리
-    }
-};
-
-// 클릭만 하고 끝났을 때 정리 (드래그로 이어지지 않은 단순 클릭)
-const handleDragEndCleanup = () => {
-     document.removeEventListener('mousemove', handleDraggingCheck);
-     document.removeEventListener('mouseup', handleDragEndCleanup);
-     startCell = null;
-}
-
-const startDragSelection = (cell, isShiftPressed) => {
-    isDragging = true;
     startCell = cell;
+    endCell = cell;
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+};
 
-    if (!isShiftPressed) { // Shift 키가 눌리지 않았다면 기존 선택 해제
-        clearSelection();
-    }
-    
-    startCell.classList.add('selected');
-    selectionBox.style.display = 'block';
-    updateSelectionBoxVisual(startCell, startCell);
-
-    document.addEventListener('mousemove', handleDragging);
-    document.addEventListener('mouseup', handleDragEnd);
-}
-
-const handleDragging = (e) => {
-    if (!isDragging) return;
-    e.preventDefault(); // 기본 텍스트 선택 방지
-
-    const cellUnderMouse = e.target.closest('td');
-    if (cellUnderMouse && cellUnderMouse !== endCell) {
-        endCell = cellUnderMouse;
-        selectCellsInDragArea(startCell, endCell);
+const handleMouseMove = (e) => {
+    if (!startCell) return;
+    isDragging = true;
+    const target = document.elementFromPoint(e.clientX, e.clientY);
+    const cellUnder = target?.closest?.('td');
+    if (cellUnder && cellUnder !== endCell) {
+        endCell = cellUnder;
+        selectCellsInRect(startCell, endCell);
         updateSelectionBoxVisual(startCell, endCell);
     }
 };
+
+const handleMouseUp = (e) => {
+    document.removeEventListener('mousemove', handleMouseMove);
+    document.removeEventListener('mouseup', handleMouseUp);
+    if (!isDragging && startCell) {
+        // 클릭만 한 경우 단일 선택
+        clearSelection();
+        startCell.classList.add('selected');
+        selectedCells.add(startCell);
+    }
+    isDragging = false;
+    startCell = null;
+    endCell = null;
+};
+
+/* -------------------------
+   Color palette
+   ------------------------- */
+const renderColorPalette = () => {
+    COLOR_PALETTE.forEach(col => {
+        const d = document.createElement('div');
+        d.className = 'color-swatch';
+        d.style.backgroundColor = col;
+        d.title = col;
+        d.addEventListener('click', () => applyColorToSelection(col));
+        colorPaletteContainer.appendChild(d);
+    });
+};
+
+const applyColorToSelection = (color) => {
+    const target = document.querySelector('input[name="colorTarget"]:checked')?.value || 'text';
+    if (selectedCells.size === 0) {
+        const active = document.activeElement;
+        if (active && active.tagName === 'TD') {
+            if (target === 'text') active.style.color = color;
+            else active.style.backgroundColor = color;
+            if (autoSave) saveTableStateDebounced();
+            return;
+        } else {
+            alert('적용할 셀을 선택하거나 포커스하세요.');
+            return;
+        }
+    }
+    selectedCells.forEach(cell => {
+        if (target === 'text') cell.style.color = color;
+        else cell.style.backgroundColor = color;
+    });
+    if (autoSave) saveTableStateDebounced();
+};
+
+/* -------------------------
+   Font size apply
+   ------------------------- */
+applyFontSizeBtn?.addEventListener('click', () => {
+    const size = fontSizeInput.value + 'px';
+    if (selectedCells.size === 0) {
+        const active = document.activeElement;
+        if (active && active.tagName === 'TD') {
+            active.style.fontSize = size;
+            if (autoSave) saveTableStateDebounced();
+            return;
+        } else { alert('적용할 셀을 선택하거나 포커스하세요.'); return; }
+    }
+    selectedCells.forEach(cell => cell.style.fontSize = size);
+    if (autoSave) saveTableStateDebounced();
+});
+
+/* -------------------------
+   Row height application (버그 수정 포함)
+   - tr 뿐 아니라 내부 td에도 높이 적용
+   - 그룹 지정(target)에 따라 각 그룹에 적용
+   ------------------------- */
+function applyRowHeightToElement(tr, value) {
+    const val = (value === '' || value == null) ? '' : (isNaN(Number(value)) ? value : `${Number(value)}px`);
+    tr.style.height = val;
+    tr.querySelectorAll('td').forEach(td => {
+        td.style.height = val;
+        // preserve text wrapping and line-height for taller rows
+        if (val) td.style.lineHeight = 'normal';
+        else td.style.lineHeight = '';
+    });
+}
+
+const applyRowHeightGroup = (target, value) => {
+    if (target === 'top-data') {
+        document.querySelectorAll('.top-data-row, .top-data-header').forEach(row => applyRowHeightToElement(row, value));
+        document.querySelectorAll('#top-notice').forEach(row => applyRowHeightToElement(row, value)); // optional
+    } else if (target === 'middle-notice') {
+        document.querySelectorAll('.middle-notice-row').forEach(row => applyRowHeightToElement(row, value));
+    } else if (target === 'bottom-data') {
+        document.querySelectorAll('.bottom-data-row, .bottom-data-header').forEach(row => applyRowHeightToElement(row, value));
+    } else if (target === 'super-top') {
+        document.querySelectorAll('.super-top-row').forEach(row => applyRowHeightToElement(row, value));
+    }
+    if (autoSave) saveTableStateDebounced();
+};
+
+/* bind height apply buttons */
+document.querySelectorAll('.height-apply-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const target = btn.dataset.target;
+        let inputId = `${target.replace('-data', 'RowHeightInput')}`;
+        if (target === 'middle-notice') inputId = 'middleNoticeRowHeightInput';
+        const input = document.getElementById(inputId);
+        if (input) applyRowHeightGroup(target, input.value);
+    });
+});
+
+/* Observe data-row-height attribute changes and apply immediately (robust) */
+const rowObserver = new MutationObserver((mutations) => {
+    for (const m of mutations) {
+        if (m.type === 'attributes' && m.attributeName === 'data-row-height') {
+            const tr = m.target;
+            const newVal = tr.getAttribute('data-row-height');
+            applyRowHeightToElement(tr, newVal);
+        }
+    }
+});
+table.querySelectorAll('tr').forEach(tr => rowObserver.observe(tr, { attributes: true }));
+
+/* -------------------------
+   Left menu scroll -> focus first editable cell in target row
+   ------------------------- */
+leftMenu?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.left-item');
+    if (!btn) return;
+    const targetId = btn.dataset.target;
+    if (!targetId) return;
+    scrollToSectionAndFocus(targetId);
+    // active toggle
+    leftMenu.querySelectorAll('.left-item').forEach(x => x.classList.remove('active'));
+    btn.classList.add('active');
+});
+
+function scrollToSectionAndFocus(sectionId) {
+    const target = document.getElementById(sectionId);
+    if (!target) return;
+    // Prefer to scroll the page so the row is visible
+    const margin = 80;
+    const rect = target.getBoundingClientRect();
+    const topY = window.scrollY + rect.top - margin;
+    window.scrollTo({ top: topY, behavior: 'smooth' });
+
+    // Focus the first editable TD after a short delay (allow smooth scroll)
+    setTimeout(() => {
+        const editable = target.querySelector('[contenteditable="true"]');
+        if (editable) {
+            placeCaretAtEnd(editable);
+            editable.focus();
+        }
+    }, 260);
+}
+
+function placeCaretAtEnd(el) {
+    if (!el) return;
+    el.focus();
+    try {
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        range.collapse(false);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+    } catch (e) {
+        // ignore
+    }
+}
+
+/* -------------------------
+   Auto-save / manual save handlers
+   ------------------------- */
+autoSaveToggleBtn?.addEventListener('click', () => {
+    autoSave = !autoSave;
+    autoSaveToggleBtn.textContent = `자동저장: ${autoSave ? 'ON' : 'OFF'}`;
+    if (autoSave) saveTableStateDebounced();
+});
+
+saveNowBtn?.addEventListener('click', () => saveTableStateImmediate());
+
+/* -------------------------
+   Image download (html2canvas)
+   ------------------------- */
+downloadFullBtn?.addEventListener('click', async () => {
+    await downloadCapture('noblesse_table');
+});
+downloadBtn?.addEventListener('click', async () => {
+    await downloadCapture('noblesse_table');
+});
+
+async function downloadCapture(prefix) {
+    try {
+        const el = document.getElementById('capture-area');
+        // temporarily force white background for consistent PNG
+        const prevBg = el.style.background;
+        el.style.background = '#ffffff';
+        const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+        el.style.background = prevBg;
+        const data = canvas.toDataURL('image/png');
+        const a = document.createElement('a');
+        a.href = data;
+        a.download = `${prefix}_${new Date().toISOString().slice(0,19).replaceAll(':','').replaceAll('T','_')}.png`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+    } catch (e) {
+        console.error('Capture failed', e);
+        alert('이미지 생성 실패');
+    }
+}
+
+/* -------------------------
+   Load / restore from local if needed
+   ------------------------- */
+function populateFromSavedLocal() {
+    const raw = localStorage.getItem('noblesse_table_snapshot');
+    if (!raw) return;
+    try {
+        const data = JSON.parse(raw);
+        if (!data || !data.cells) return;
+        const rows = table.querySelectorAll('tr');
+        rows.forEach((row, rIndex) => {
+            row.querySelectorAll('td').forEach((cell, cIndex) => {
+                const id = `r${rIndex}c${cIndex}`;
+                const st = data.cells[id];
+                if (st) {
+                    cell.innerHTML = st.text || cell.innerHTML;
+                    cell.style.color = st.color || '';
+                    cell.style.backgroundColor = st.bg || '';
+                    cell.style.fontSize = st.fontSize || '';
+                }
+            });
+        });
+        if (data.rowHeights) {
+            for (const [k, v] of Object.entries(data.rowHeights)) {
+                let inputId = `${k.replace('-data', 'RowHeightInput')}`;
+                if (k === 'middle-notice') inputId = 'middleNoticeRowHeightInput';
+                const input = document.getElementById(inputId);
+                if (input) input.value = v;
+                applyRowHeightGroup(k, v);
+            }
+        }
+    } catch (e) {
+        console.warn('Restore failed', e);
+    }
+}
+
+/* -------------------------
+   Misc: sync selection visual on scroll/resize
+   ------------------------- */
+const syncSelectionVisual = () => {
+    if (selectedCells.size === 0) return;
+    const arr = Array.from(selectedCells);
+    updateSelectionBoxVisual(arr[0], arr[arr.length - 1]);
+};
+
+document.querySelector('.wrap')?.addEventListener('scroll', () => syncSelectionVisual());
+window.addEventListener('resize', () => syncSelectionVisual());
+
+/* -------------------------
+   Init
+   ------------------------- */
+renderColorPalette();
+initAuth();
+populateFromSavedLocal();
+
+/* Attach mouse handlers */
+table.addEventListener('mousedown', handleMouseDown);
+table.addEventListener('input', () => { if (autoSave) saveTableStateDebounced(); });
+
+/* Expose manual save for console usage */
+window.saveTableStateImmediate = saveTableStateImmediate;
