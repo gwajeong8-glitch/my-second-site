@@ -191,9 +191,9 @@
 
         .data-table td {
             border: 1px solid #444;
-            padding: 0 8px; /* ⬅️수정: 수직 패딩 0, 가로 패딩 유지 */
+            padding: 0 8px; 
             text-align: center;
-            vertical-align: middle; /* ⬅️추가: 수직 중앙 정렬 강제 */
+            vertical-align: middle; 
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -209,7 +209,7 @@
             color: #ffe6e6;
             font-weight: bold;
             text-align: center; 
-            padding: 0 12px; /* ⬅️수정: 수직 패딩 0, 가로 패딩 유지 */
+            padding: 0 12px; 
             height: 35px;
         }
         .top-notice-mark {
@@ -531,6 +531,8 @@
     const fontSizeInput = document.getElementById('fontSizeInput');
     const selectionBox = document.getElementById('selectionBox');
     const leftMenu = document.getElementById('leftMenu');
+    const settingPanel = document.getElementById('settingPanel');
+    const fixedLogoContainer = document.querySelector('.fixed-logo-container'); // ⬅️추가: 로고 컨테이너
    
     const menuIndicator = document.getElementById('menuIndicator');
     const topSubMenu = document.getElementById('topSubMenu');
@@ -1121,6 +1123,18 @@ Col ${lastColIndex + 1}`;
         const prevStyles = [];
 
         // 1. 제외할 요소 임시 숨기기
+        // ⬅️추가: 설정 패널을 여기서 직접 숨깁니다. (안전 장치)
+        if (settingPanel) {
+            prevStyles.push({ el: settingPanel, display: settingPanel.style.display });
+            settingPanel.style.display = 'none';
+        }
+        // ⬅️추가: 로고 컨테이너도 여기서 직접 숨깁니다.
+        if (fixedLogoContainer) {
+             prevStyles.push({ el: fixedLogoContainer, display: fixedLogoContainer.style.display });
+             fixedLogoContainer.style.display = 'none';
+        }
+
+
         excludeSelectors.forEach(selector => {
             document.querySelectorAll(selector).forEach(el => {
                 if (el.style.display !== 'none') {
@@ -1156,7 +1170,8 @@ Col ${lastColIndex + 1}`;
         // 4. 원래대로 복구
         prevStyles.forEach(({ el, display, visibility }) => {
             el.style.display = display;
-            el.style.visibility = visibility;
+            if (visibility !== undefined) el.style.visibility = visibility;
+            
         });
         
         // 5. 스크롤 위치 복구
@@ -1177,8 +1192,8 @@ Col ${lastColIndex + 1}`;
     // '전체 화면 이미지 다운로드' 버튼 로직 (수정된 주 기능)
     downloadFullBtn?.addEventListener('click', () => {
         // 캡처 대상: document.body (전체 화면)
-        // 제외 요소: settingPanel (설정 패널), selectionBox (드래그 박스)
-        captureAndDownload(document.body, '전체화면_데이터현황', ['#settingPanel', '#selectionBox']);
+        // ⬅️수정: 제외 요소 목록에 설정 패널(#settingPanel), 로고(.fixed-logo-container), 드래그 박스(#selectionBox) 명시
+        captureAndDownload(document.body, '전체화면_데이터현황', ['#settingPanel', '#selectionBox', '.fixed-logo-container']);
     });
 
     // '테이블 이미지 다운로드' 버튼 로직 (기존 기능 유지)
