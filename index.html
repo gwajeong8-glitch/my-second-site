@@ -156,7 +156,7 @@
             font-size: 0.95em;
             color: #bbb;
             cursor: pointer;
-            transition: background-color 0.12s, color 0.12s;
+            transition: background-color 0.12s, color: 0.12s;
             border-left: 6px solid transparent;
             margin-bottom: 4px;
             border-radius: 0 6px 6px 0;
@@ -368,6 +368,19 @@
         <button id="autoFitBtn" class="small-btn" style="margin-top: 10px;
             width: 100%; background: #007bff;">열 너비 자동 맞춤 (Auto-Fit)</button>
     </div>
+    
+    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #444;">
+        <h3>✏️ 문구 편집 (Custom Text)</h3>
+        <label for="editTopText" style="display: block; margin-bottom: 5px; font-size: 0.9em; color:#fff;">상단 문구 (한 줄):</label>
+        <input type="text" id="editTopText" value="당신의 취향을 공유하며, 뜨거운 교감을 나눌 은밀한 파트너. 은밀한 만남을 통해 최상의 만족감을 경험하세요." 
+            style="width: 100%; padding: 5px; color: black; border-radius: 3px; border: none; margin-bottom: 10px;">
+
+        <label for="editBottomText" style="display: block; margin-bottom: 5px; font-size: 0.9em; color:#fff;">하단 공지 (HTML/줄바꿈 가능):</label>
+        <textarea id="editBottomText" rows="4" style="width: 100%; padding: 5px; color: black; border-radius: 3px; border: none; resize: vertical;">[중요 공지] 업무 진행 중 핵심 정보를 누락하는 일이 없도록 담당자의 지시에 따라 신중하게 처리하시기 바랍니다.<br>개별 업무 처리로 발생하는 모든 결과 책임은 당사자에게 귀속됩니다. 진행 상황은 시스템에 실시간 반영되오니, 항상 확인하여 주십시오.</textarea>
+
+        <button id="applyTextChangesBtn" class="small-btn" style="width: 100%; background: #ff7700;">문구 적용 및 저장</button>
+    </div>
+
 
     <div style="margin-top: 15px; padding-top: 15px;
         border-top: 1px solid #444;">
@@ -420,8 +433,8 @@
 <div class="wrap">
     <div id="selectionBox"></div>
 
-    <div style="text-align: center; color: #ffdd66; font-size: 1.1em; margin-bottom: 20px; font-weight: bold; line-height: 1.5;">
-        당신의 취향을 공유하며, 뜨거운 교감을 나눌 은밀한 파트너.<br>은밀한 만남을 통해 최상의 만족감을 경험하세요.
+    <div id="topNoticeContainer" style="text-align: center; color: #ffdd66; font-size: 1.1em; margin-bottom: 20px; font-weight: bold; line-height: 1.5;">
+        <span id="topNoticeText">당신의 취향을 공유하며, 뜨거운 교감을 나눌 은밀한 파트너. 은밀한 만남을 통해 최상의 만족감을 경험하세요.</span>
     </div>
 
     <div class="top-sub-menu" id="topSubMenu">
@@ -483,8 +496,12 @@
     </table>
 
     <div style="text-align: center; margin-top: 20px; padding: 15px; background-color: #2c2c2c; border-radius: 6px; color: #aaa; font-size: 0.9em; line-height: 1.6;">
-        [중요 공지] 업무 진행 중 핵심 정보를 누락하는 일이 없도록 담당자의 지시에 따라 신중하게 처리하시기 바랍니다.<br>
-        개별 업무 처리로 발생하는 모든 결과 책임은 당사자에게 귀속됩니다. 진행 상황은 시스템에 실시간 반영되오니, 항상 확인하여 주십시오.
+        <span style="font-size: 3em; line-height: 0; vertical-align: middle; padding-right: 10px; color:#666;">[</span>
+        <span id="bottomNoticeText" style="display: inline-block; max-width: 90%; text-align: center;">
+            [중요 공지] 업무 진행 중 핵심 정보를 누락하는 일이 없도록 담당자의 지시에 따라 신중하게 처리하시기 바랍니다.<br>
+            개별 업무 처리로 발생하는 모든 결과 책임은 당사자에게 귀속됩니다. 진행 상황은 시스템에 실시간 반영되오니, 항상 확인하여 주십시오.
+        </span>
+        <span style="font-size: 3em; line-height: 0; vertical-align: middle; padding-left: 10px; color:#666;">]</span>
     </div>
 
 </div>
@@ -503,6 +520,14 @@
     const topSubMenu = document.getElementById('topSubMenu');
     const wrap = document.querySelector('.wrap'); // wrap element 추가
     
+    // 🚀 [NEW] Custom Text DOM refs
+    const topNoticeText = document.getElementById('topNoticeText');
+    const bottomNoticeText = document.getElementById('bottomNoticeText');
+    const editTopText = document.getElementById('editTopText');
+    const editBottomText = document.getElementById('editBottomText');
+    const applyTextChangesBtn = document.getElementById('applyTextChangesBtn');
+
+
     // Tool buttons
     const autoSaveToggleBtn = document.getElementById('autoSaveToggleBtn');
     const saveNowBtn = document.getElementById('saveNowBtn');
@@ -613,6 +638,15 @@
         
         // 관리자 모드 상태 초기화
         toggleAdminMode(adminMode); 
+        
+        // 🚀 [NEW] 로드 시, input/textarea에 현재 표시 중인 텍스트 설정 (줄바꿈 처리)
+        if (editTopText && topNoticeText) {
+            editTopText.value = topNoticeText.textContent;
+        }
+        if (editBottomText && bottomNoticeText) {
+            // innerHTML에서 <br>을 \n으로 변환하여 textarea에 표시
+            editBottomText.value = bottomNoticeText.innerHTML.replace(/<br\s*\/?>/g, '\n').trim();
+        }
 
         clearSelection();
     };
@@ -809,6 +843,20 @@
         
         if (autoSave) saveTableStateDebounced();
     });
+
+    // 🚀 [NEW] Custom Text Change Handler
+    applyTextChangesBtn?.addEventListener('click', () => {
+        if (topNoticeText && editTopText) {
+            topNoticeText.textContent = editTopText.value;
+        }
+        if (bottomNoticeText && editBottomText) {
+            // Textarea value (with line breaks) will be applied as innerHTML to preserve <br> tags
+            bottomNoticeText.innerHTML = editBottomText.value.replace(/\n/g, '<br>');
+        }
+        alert('문구 변경이 완료되었습니다.');
+        if (autoSave) saveTableStateDebounced();
+    });
+
 
     // Row height apply event
     document.querySelectorAll('.height-apply-btn').forEach(btn => {
@@ -1188,71 +1236,6 @@
         } finally {
             selectionBox.style.display = prevSelectionDisplay;
         }
-    });
-
-    // Auto-Fit Column Width
-    autoFitBtn?.addEventListener('click', () => {
-        if (!adminMode) {
-            alert('관리자 모드(편집 가능)에서만 열 너비 자동 맞춤이 가능합니다.');
-            return;
-        }
-        
-        const tableArea = table; 
-        const padding = 16; // 5px + 8px * 2 (패딩) + 2px (경계선) 대략 15px를 잡아줌
-        const colCount = table.querySelector('tr')?.cells.length || 5;
-        const widths = {}; // 모든 셀의 콘텐츠 너비 계산
-
-        for (let r = 0; r < table.rows.length; r++) {
-            const row = table.rows[r];
-            for (let c = 0; c < row.cells.length; c++) {
-                const cell = row.cells[c];
-                // colspan이 적용된 셀이거나 데이터 행이 아닌 경우 (공지/헤더)는 너비 계산에서 
-                // 제외
-                if (cell.colSpan > 1 && !row.classList.contains('top-data-header') && !row.classList.contains('bottom-data-header')) continue;
-                
-                const content = cell.textContent || cell.innerText || '';
-                if (content.trim() === '') continue; // 내용이 없으면 무시
-
-                const span = document.createElement('span');
-                span.style.visibility='hidden';
-                span.style.whiteSpace='nowrap'; // 줄바꿈 방지
-                // 계산된 스타일을 가져와서 정확한 너비 측정
-                span.style.font = window.getComputedStyle(cell).font;
-                span.innerHTML = content.replace(/\s+/g,'&nbsp;');
-                // 공백도 너비에 포함
-
-                // 임시 컨테이너에 추가하여 너비 측정
-                document.body.appendChild(span);
-                const contentWidth = span.offsetWidth;
-                document.body.removeChild(span);
-                
-                const finalWidth = contentWidth + padding;
-                const index = cell.cellIndex;
-
-                // 공지/헤더 행의 셀은 너비 계산에서 제외 (일반 데이터 행의 셀 너비만 추적)
-                if (row.classList.contains('top-data-row') || row.classList.contains('bottom-data-row')) {
-                    widths[index] = Math.max(widths[index] || 0, finalWidth);
-                } else if (row.classList.contains('top-data-header') || row.classList.contains('bottom-data-header')) {
-                     widths[index] = Math.max(widths[index] || 0, finalWidth);
-                }
-            }
-        }
-
-        // 계산된 너비를 셀에 적용
-        for (let r = 0; r < table.rows.length; r++) {
-            const row = table.rows[r];
-            for (let c = 0; c < row.cells.length; c++) {
-                const cell = row.cells[c];
-                const index = cell.cellIndex;
-                if (widths[index]) {
-                    cell.style.minWidth = `${widths[index]}px`;
-                    cell.style.width = `${widths[index]}px`;
-                }
-            }
-        }
-
-        alert('열 너비 자동 맞춤이 완료되었습니다.');
-        if (autoSave) saveTableStateDebounced();
     });
 
     // 🚀 [수정된 기능] 전체 영역 이미지 다운로드 기능 (Download Full)
