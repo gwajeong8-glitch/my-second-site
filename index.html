@@ -1122,7 +1122,7 @@
     // Toggle Admin Mode
     toggleAdminBtn?.addEventListener('click', () => toggleAdminMode());
 
-    // Image Download
+    // Image Download (Selected Area)
     downloadBtn?.addEventListener('click', async () => {
         if (selectedCells.size === 0) {
             alert('이미지를 다운로드할 셀을 **Ctrl/Cmd 키**를 누른 채 드래그하여 선택하세요.');
@@ -1256,6 +1256,7 @@
     });
 
     // 🚀 [수정된 기능] 전체 영역 이미지 다운로드 기능 (Download Full)
+    // 오른쪽 설정 패널을 제외하고 왼쪽 메뉴와 메인 콘텐츠만 캡처
     downloadFullBtn?.addEventListener('click', async () => {
         const prevSelectionDisplay = selectionBox.style.display;
         selectionBox.style.display = 'none'; // 선택 박스 숨김
@@ -1266,7 +1267,8 @@
 
         try {
             const settingPanel = document.getElementById('settingPanel');
-            const settingPanelWidth = settingPanel ? settingPanel.offsetWidth : 300; // 뷰포트 너비에서 우측 설정 패널의 너비만큼 제외하여 캡처 영역을 설정
+            // 우측 설정 패널의 너비만큼 캡처 영역을 제외
+            const settingPanelWidth = settingPanel ? settingPanel.offsetWidth : 300; 
             const targetWidth = window.innerWidth - settingPanelWidth; 
 
             // html2canvas 옵션: 스크롤 포함, 배경색 투명 방지
